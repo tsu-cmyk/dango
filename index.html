@@ -43,6 +43,10 @@ button:disabled{opacity:.45;cursor:default}
 .ctag{position:absolute;left:50%;top:-11px;transform:translateX(-50%);white-space:nowrap;font-family:var(--body);font-size:11px;font-weight:500;line-height:1;padding:3px 7px;border-radius:999px;background:var(--ink);color:var(--sun);border:1.5px solid var(--sun);pointer-events:none}
 .ctag.hit{animation:taghit .5s}@keyframes taghit{30%{transform:translateX(-50%) scale(1.35);background:var(--sun);color:var(--ink)}}
 #bRoll,#bBite{position:relative}
+#bRoll.stance,#bBite.stance{box-shadow:0 0 0 3px #8a3ab0 inset}
+#bRoll.kiwami,#bBite.kiwami{box-shadow:0 0 0 3px #8a3ab0 inset,0 0 0 3px #f2c43a;font-size:15px;white-space:nowrap}
+#bRoll.kiwami{font-size:13px}
+.kiwami-row{display:block;margin-top:3px;color:#8a3ab0}
 .slot{font-size:11px;font-weight:500;padding:2px 5px;border-radius:6px;background:#fff;border:1.5px solid var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .slot b{font-weight:700;color:var(--red);margin-right:2px}
 .slot em{font-style:normal;color:var(--gold);margin-left:2px}
@@ -70,6 +74,9 @@ button:disabled{opacity:.45;cursor:default}
 #bRoll{width:clamp(70px,19vw,84px);aspect-ratio:1;background:#9fb0c4;font-size:16px;font-weight:700}
 #bBite{width:clamp(88px,24vw,106px);aspect-ratio:1;background:var(--sun);font-size:18px;font-family:var(--display)}
 #skipBtn{position:fixed;z-index:3;right:16px;top:calc(env(safe-area-inset-top,0px) + 12px);background:rgba(244,234,210,.9);border:2px solid var(--ink);border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;box-shadow:2px 2px 0 var(--ink)}
+#toasts{position:fixed;left:16px;top:46%;display:grid;gap:4px;pointer-events:none;z-index:2;max-width:min(15rem,62vw)}
+.toast{background:rgba(42,33,24,.86);color:#f4ead2;border-radius:10px;padding:5px 10px;font-size:12px;line-height:1.4;animation:toastIn .25s both;transition:opacity .4s,transform .4s}.toast b{display:block;font-weight:700;color:#f2c43a}.toast small{display:block;font-weight:500;opacity:.9}.toast.out{opacity:0;transform:translateX(-12px)}@keyframes toastIn{from{opacity:0;transform:translateX(-12px)}}
+.bar.bond{display:none!important}
 #coach{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 132px);max-width:min(17rem,70vw);background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;padding:8px 12px;font-size:13.5px;font-weight:500;line-height:1.55;box-shadow:3px 3px 0 var(--ink);pointer-events:none;animation:coachIn .3s both}
 #coach{pointer-events:auto;padding-right:30px}#coach.left{right:auto;left:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 150px)}#coach.left::after{display:none}
 #coachX{position:absolute;top:4px;right:6px;border:0;background:none;font-size:16px;font-weight:700;color:var(--ink);opacity:.6;padding:2px 6px}
@@ -141,7 +148,7 @@ button:disabled{opacity:.45;cursor:default}
 #pcName{font-size:21px}
 #pcRar{font-family:var(--display);font-size:13px}
 .cmp{display:grid;gap:6px;font-size:13px;font-weight:700}
-.cmp-row{display:grid;grid-template-columns:5.2em 1fr 2.6em;gap:8px;align-items:center}
+.cmp-row{display:grid;grid-template-columns:5.6em 1fr auto;font-size:12.5px;gap:8px;align-items:center}
 .cmp-bar{position:relative;height:12px;border:2px solid var(--ink);border-radius:6px;background:#fff;overflow:hidden}
 .cmp-bar i{position:absolute;left:0;top:0;bottom:0;background:#c9bfa6}
 .cmp-bar b{position:absolute;left:0;top:3px;height:4px;background:var(--red)}
@@ -231,13 +238,14 @@ button:disabled{opacity:.45;cursor:default}
 <div id="achPop" hidden><small>称号を 手に入れた</small><b id="achName"></b><span id="achDesc"></span></div>
 <div id="bossIntro" hidden><div><small id="bossIntroSub">番長</small><b id="bossIntroName">オサ</b></div></div>
 <button id="skipBtn" type="button" hidden>スキップ ▶▶</button>
+<div id="toasts"></div>
 <div id="coach" hidden><span id="coachT"></span><button type="button" id="coachX" aria-label="説明を とじる">×</button></div>
 <div id="orderMenu" hidden></div>
 <div id="stickHint" hidden>左がわを なぞって うごく。<br>すみか（葉っぱの家）で 休める。</div>
 <div id="btns" hidden>
   <button class="bt" id="bCombo" type="button" hidden>連携</button>
-  <button class="bt" id="bRoll" type="button">まる<br>まる<span class="ctag" id="rollTag" hidden></span></button>
-  <button class="bt" id="bBite" type="button">かむ<span class="ctag" id="biteTag" hidden></span></button>
+  <button class="bt" id="bRoll" type="button"><span id="rollLbl">まる<br>まる</span><span class="ctag" id="rollTag" hidden></span></button>
+  <button class="bt" id="bBite" type="button"><span id="biteLbl">かむ</span><span class="ctag" id="biteTag" hidden></span></button>
 </div>
 <div id="talk" hidden><div class="talk-box"><p class="talk-who" id="talkWho"></p><p class="talk-text" id="talkText"></p><div id="talkChoices"></div><span class="talk-next" id="talkNext">タップで つぎへ ▶</span></div></div>
 <div id="cine" hidden><div class="talk-box"><p class="talk-who" id="cineWho"></p><p class="talk-text" id="cineText"></p><span class="talk-next">タップで つぎへ ▶</span></div></div>
@@ -356,6 +364,11 @@ button:disabled{opacity:.45;cursor:default}
 <script src="js/v17.js"></script>
 <script src="js/v18.js"></script>
 <script src="js/v19.js"></script>
+<script src="js/v20.js"></script>
+<script src="js/v21.js"></script>
+<script src="js/v22.js"></script>
+<script src="js/v23.js"></script>
+<script src="js/v24.js"></script>
 <script src="js/render.js"></script>
 <script src="js/ui.js"></script>
 
