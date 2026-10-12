@@ -1,0 +1,362 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>ひと夏の番長</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* One deliberate look: a summer-vacation picture diary printed in riso inks. Light theme only, by design. */
+:root{
+  --paper:#f4ead2;--ink:#2a2118;--sun:#f2b632;--red:#c8452d;--leaf:#5f7d3a;--sky:#8fb0c9;--gold:#b8860b;--blue:#2f6fb0;
+  --display:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;
+  --body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden}
+body{background:#c9a66e;color:var(--ink);font-family:var(--body);overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font-family:var(--body);color:var(--ink);cursor:pointer}
+button:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+button:disabled{opacity:.45;cursor:default}
+[hidden]{display:none!important}
+
+#hud{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 0;display:flex;gap:8px;align-items:flex-start;pointer-events:none}
+.card{background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;padding:8px 10px;box-shadow:3px 3px 0 var(--ink);display:grid;gap:5px;min-width:0}
+.me{width:min(13.5rem,50vw);padding:6px 8px;gap:4px}
+.me-top{display:flex;align-items:baseline;gap:5px;font-weight:700;font-size:13px;min-width:0}
+.me-top .ttag{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.me-top small{font-size:11px;opacity:.75}
+.me-top>span:first-child{white-space:nowrap}
+.bar{height:9px;border:2px solid var(--ink);border-radius:6px;background:#fff;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--red);transition:width .15s}
+.bar i.low{animation:blink .6s steps(2) infinite}
+@keyframes blink{50%{background:#ffb4a0}}
+.bar.xp{height:6px}.bar.xp i{background:var(--sun)}
+.bar.al{height:6px}.bar.al i{background:var(--leaf)}
+.bar.bond{height:5px;border-width:1.5px}.bar.bond i{background:#d9a21b}.bar.bond i.full{background:linear-gradient(90deg,#f2b632,#fff2a8,#f2b632);background-size:200% 100%;animation:shine 1s linear infinite}@keyframes shine{to{background-position:-200% 0}}
+#bCombo{position:absolute;right:0;bottom:calc(100% + 12px);width:clamp(74px,20vw,88px);aspect-ratio:1;background:linear-gradient(135deg,#f2b632,#fff2a8);font-family:var(--body);font-weight:700;font-size:15px;line-height:1.15;animation:pulse .8s ease-in-out infinite alternate}@keyframes pulse{to{transform:scale(1.08)}}
+#btns{position:fixed}
+#obj.fade{opacity:0}
+#pauseBtn{font-size:12px;padding:4px 9px;border-width:2px}
+.ctag{position:absolute;left:50%;top:-11px;transform:translateX(-50%);white-space:nowrap;font-family:var(--body);font-size:11px;font-weight:500;line-height:1;padding:3px 7px;border-radius:999px;background:var(--ink);color:var(--sun);border:1.5px solid var(--sun);pointer-events:none}
+.ctag.hit{animation:taghit .5s}@keyframes taghit{30%{transform:translateX(-50%) scale(1.35);background:var(--sun);color:var(--ink)}}
+#bRoll,#bBite{position:relative}
+.slot{font-size:11px;font-weight:500;padding:2px 5px;border-radius:6px;background:#fff;border:1.5px solid var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.slot b{font-weight:700;color:var(--red);margin-right:2px}
+.slot em{font-style:normal;color:var(--gold);margin-left:2px}
+.slot i{font-style:normal;margin-left:2px}.slot i.r1{color:var(--blue)}.slot i.r2{color:var(--gold)}
+.combos{display:flex;gap:3px;flex-wrap:wrap}
+.combos span{font-size:11px;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--ink);color:var(--sun)}
+.combos small{font-size:11px;opacity:.7;font-weight:700}
+.ally-box{display:grid;gap:2px;font-size:11px;font-weight:700;color:var(--leaf)}
+#allyName2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#2f6fb0}
+#allyName{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spacer{flex:1}
+.side{display:grid;gap:5px;justify-items:end}
+.date{font-family:var(--display);font-size:12px;line-height:1.1;text-align:center;padding:3px 7px;gap:1px;box-shadow:2px 2px 0 var(--ink);border-width:2px;border-radius:9px}
+.date small{display:block;font-family:var(--body);font-size:10px;font-weight:500;opacity:.8}
+#mini{width:78px;height:78px;background:rgba(244,234,210,.9);border:2.5px solid var(--ink);border-radius:10px;box-shadow:2px 2px 0 var(--ink)}
+.mini{pointer-events:auto;background:var(--paper);border:2.5px solid var(--ink);border-radius:10px;padding:6px 12px;font-weight:700;font-size:14px;box-shadow:2px 2px 0 var(--ink)}
+.mini.gold{background:var(--sun)}
+.mini.chal{background:var(--red);color:#fff}
+.cand .mini,.row.tight .mini{white-space:nowrap;flex:none;padding:6px 10px;font-size:13px}
+#obj{transition:opacity .6s;position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 132px);max-width:calc(100% - 32px);font-size:13px;font-weight:700;background:rgba(42,33,24,.82);color:var(--paper);padding:4px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+#btns{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;align-items:flex-end;gap:12px}
+.bt{touch-action:none;border:3px solid var(--ink);border-radius:50%;font-weight:700;display:grid;place-items:center;box-shadow:3px 3px 0 var(--ink);transition:transform .05s;line-height:1.1;text-align:center}
+.bt.on{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+#bRoll{width:clamp(70px,19vw,84px);aspect-ratio:1;background:#9fb0c4;font-size:16px;font-weight:700}
+#bBite{width:clamp(88px,24vw,106px);aspect-ratio:1;background:var(--sun);font-size:18px;font-family:var(--display)}
+#skipBtn{position:fixed;z-index:3;right:16px;top:calc(env(safe-area-inset-top,0px) + 12px);background:rgba(244,234,210,.9);border:2px solid var(--ink);border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;box-shadow:2px 2px 0 var(--ink)}
+#coach{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 132px);max-width:min(17rem,70vw);background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;padding:8px 12px;font-size:13.5px;font-weight:500;line-height:1.55;box-shadow:3px 3px 0 var(--ink);pointer-events:none;animation:coachIn .3s both}
+#coach{pointer-events:auto;padding-right:30px}#coach.left{right:auto;left:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 150px)}#coach.left::after{display:none}
+#coachX{position:absolute;top:4px;right:6px;border:0;background:none;font-size:16px;font-weight:700;color:var(--ink);opacity:.6;padding:2px 6px}
+.cstep{display:block;font-size:10px;opacity:.6;margin-top:2px}
+#bCombo.idle{animation:none;background:conic-gradient(#f2b632 var(--g,0%),#d8cfb8 0);font-size:13px}#bCombo .ord{display:block;font-weight:700;font-size:14px}#bCombo small{display:block;font-size:9px;font-weight:500;line-height:1.2}
+#orderMenu{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 230px);display:grid;gap:6px;width:min(15rem,70vw);z-index:3}#orderMenu button{text-align:left;background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;padding:6px 10px;box-shadow:2px 2px 0 var(--ink);display:grid}#orderMenu button.on{background:var(--sun)}#orderMenu small{font-size:11px;font-weight:500;line-height:1.4}
+.rest{color:#c8452d;font-weight:700;display:block}
+#coach b{font-weight:700;color:var(--red)}
+#coach::after{content:'';position:absolute;bottom:-12px;right:var(--ar,40px);border:10px solid transparent;border-top-color:var(--ink);border-bottom:0}
+@keyframes coachIn{from{opacity:0;transform:translateY(8px)}}
+.bt.coachme{animation:coachPulse 1s ease-in-out infinite}
+@keyframes coachPulse{50%{box-shadow:0 0 0 8px rgba(242,182,50,.55),3px 3px 0 var(--ink)}}
+#stickHint{position:fixed;left:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);font-size:12px;font-weight:700;opacity:.8;pointer-events:none;max-width:10rem;line-height:1.5;background:rgba(244,234,210,.85);border:2px solid var(--ink);border-radius:10px;padding:6px 10px}
+
+#areaName{position:fixed;left:16px;right:16px;top:34%;text-align:center;pointer-events:none}
+#areaName b{display:inline-block;font-family:var(--display);font-weight:400;font-size:clamp(32px,10vw,54px);color:var(--paper);-webkit-text-stroke:1.5px var(--ink);text-shadow:4px 4px 0 var(--ink);transform:rotate(-2deg)}
+#areaName small{display:block;margin-top:10px;font-weight:700;font-size:14px}
+#areaName.show{animation:fadeio 2.6s both}
+@keyframes fadeio{0%{opacity:0;transform:translateY(10px)}12%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+#banner{position:fixed;left:16px;right:16px;top:27%;text-align:center;pointer-events:none}
+#banner.show{animation:pop 2.9s both}
+@keyframes pop{0%{opacity:0;transform:scale(.8)}8%{opacity:1;transform:scale(1.05)}14%{transform:none}85%{opacity:1}100%{opacity:0}}
+#banner span{display:inline-block;background:var(--ink);color:var(--sun);font-family:var(--display);font-size:clamp(20px,6vw,28px);padding:8px 18px;border-radius:10px;box-shadow:4px 4px 0 var(--red);transform:rotate(-2deg)}
+#banner small{display:block;margin-top:8px;font-weight:700;font-size:13px;background:var(--paper);border:2px solid var(--ink);border-radius:8px;padding:4px 10px;width:max-content;max-width:100%;margin-inline:auto}
+#bossIntro{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none}
+#bossIntro.show{animation:bi 2.2s both}
+@keyframes bi{0%{opacity:0}10%{opacity:1}80%{opacity:1}100%{opacity:0}}
+#bossIntro div{background:var(--red);border-top:4px solid var(--ink);border-bottom:4px solid var(--ink);width:100%;text-align:center;padding:14px 16px;transform:skewY(-4deg)}
+#bossIntro small{display:block;color:var(--paper);font-weight:700;font-size:14px;letter-spacing:.3em}
+#bossIntro b{display:block;font-family:var(--display);font-weight:400;color:var(--paper);font-size:clamp(30px,10vw,52px);-webkit-text-stroke:1.5px var(--ink);text-shadow:4px 4px 0 var(--ink)}
+
+#talk{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 132px);display:flex;justify-content:center;pointer-events:auto}
+.talk-box{width:100%;max-width:30rem;background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:12px 14px 10px;box-shadow:4px 4px 0 var(--ink)}
+.talk-who{font-family:var(--display);font-size:13px;color:var(--red);margin:0 0 4px}
+.talk-text{margin:0;font-size:16px;font-weight:700;line-height:1.6;min-height:3.2em}
+.talk-next{display:block;text-align:right;font-size:11px;font-weight:700;opacity:.6}
+#talkChoices{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+
+.overlay{position:fixed;inset:0;display:grid;place-items:center;padding:20px 16px;background:rgba(42,33,24,.45);touch-action:pan-y;overflow:auto}
+.waza{text-align:center;justify-items:center}.waza h2{font-family:var(--display);font-weight:400;font-size:34px;margin:0;line-height:1.1}
+.wz-k{font-weight:700;color:var(--red);letter-spacing:.1em}
+.wz-row{display:flex;gap:12px;align-items:center;text-align:left;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:10px 12px}
+.wz-row p{margin:0;font-weight:500;line-height:1.6}
+.wz-btn{flex:none;width:64px;height:64px;border-radius:50%;border:3px solid var(--ink);display:grid;place-items:center;font-weight:700;font-size:13px;line-height:1.1;box-shadow:2px 2px 0 var(--ink);background:#9fb0c4}
+.wz-btn.bite{background:var(--sun);font-family:var(--display);font-size:16px}.wz-btn.auto{background:#bfe3a8;font-size:12px}
+.dtag{white-space:nowrap;background:#f2c43a;color:var(--ink);border-radius:999px;padding:0 6px;opacity:1!important;font-weight:700}.entry.dango .on{color:#b8860b;font-weight:700}.entry.pairs .cand{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:6px}
+.entry.trophy .cand{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:6px}
+.entry.quest.done{opacity:.6}
+.entry.compat{background:#fff8e0}
+.tdesc{opacity:.8}.kz b{color:#c8452d}.talkbtn{animation:pulse .8s ease-in-out infinite alternate}
+.wzplus{color:#b07a00;font-weight:700}.wzminus{color:var(--red);font-weight:700}
+.wzchip{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;border:1.5px solid var(--ink);background:#9fb0c4;color:var(--ink);margin-right:2px}.wzchip.bite{background:var(--sun)}.wzchip.auto{background:#bfe3a8}
+.panel{width:100%;max-width:27rem;background:var(--paper);border:3px solid var(--ink);border-radius:18px;padding:18px;display:grid;gap:12px;box-shadow:6px 6px 0 var(--ink)}
+.panel h2{margin:0;font-family:var(--display);font-weight:400;font-size:23px;line-height:1.3}
+.panel p{margin:0;font-size:14.5px;line-height:1.7;font-weight:700}
+.small{font-size:12.5px!important;opacity:.85}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row.tight{gap:6px}
+.go{font-family:var(--display);font-size:16px;padding:10px 18px;border-radius:12px;border:3px solid var(--ink);background:var(--sun);box-shadow:3px 3px 0 var(--ink)}
+.go.alt{background:#fff}
+.go:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tag{display:inline-block;justify-self:start;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--ink);color:var(--paper);letter-spacing:.06em}
+.traits{display:inline-flex;gap:3px;flex-wrap:wrap;margin-left:4px;vertical-align:middle}
+.traits i{font-style:normal;font-size:11px;font-weight:700;padding:1px 6px;border-radius:6px;background:#e9f0ff;border:1.5px solid var(--blue);color:var(--blue)}
+
+.pc-head{display:flex;gap:12px;align-items:center}
+.pc-head canvas{width:104px;height:104px;flex:none;background:#efe1bf;border:2px solid var(--ink);border-radius:12px}
+.pc-head>div{display:grid;gap:4px;min-width:0}
+#pcName{font-size:21px}
+#pcRar{font-family:var(--display);font-size:13px}
+.cmp{display:grid;gap:6px;font-size:13px;font-weight:700}
+.cmp-row{display:grid;grid-template-columns:5.2em 1fr 2.6em;gap:8px;align-items:center}
+.cmp-bar{position:relative;height:12px;border:2px solid var(--ink);border-radius:6px;background:#fff;overflow:hidden}
+.cmp-bar i{position:absolute;left:0;top:0;bottom:0;background:#c9bfa6}
+.cmp-bar b{position:absolute;left:0;top:3px;height:4px;background:var(--red)}
+.cmp-row span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:#3f7a2a}.down{color:var(--red)}
+.note{font-size:12.5px;font-weight:700;background:var(--ink);color:var(--sun);border-radius:8px;padding:6px 10px}
+.waza-note{font-weight:500;line-height:1.6;color:#f4ead2}.waza-note b{color:var(--sun);font-weight:700}
+.note.lose{background:#fff;color:var(--red);border:2px solid var(--red)}
+.pc-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pc-btns .go{font-size:15px;padding:10px 8px}
+.mgbtn{text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%;gap:3px!important;background:#fffbea!important;border-color:var(--gold)!important;box-shadow:2px 2px 0 var(--ink)}
+.mgbtn:active{transform:translate(1px,1px)}.mghead{font-weight:700;font-size:15px;color:var(--red)}.mgres{font-size:13px}
+.ttag{color:var(--gold);font-weight:700;font-size:10.5px!important;opacity:1!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:6.5em;min-width:0}
+.achbtn{text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%}
+#achPop{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 250px);background:var(--ink);color:var(--paper);border:3px solid var(--sun);border-radius:14px;padding:8px 18px;text-align:center;pointer-events:none;box-shadow:4px 4px 0 var(--red);display:grid;gap:2px;min-width:14rem}
+#achPop small{font-size:11px;font-weight:700;color:var(--sun)}#achPop b{font-family:var(--display);font-weight:400;font-size:20px}#achPop span{font-size:12px;font-weight:700}
+#achPop.show{animation:achin 3.6s both}@keyframes achin{0%{opacity:0;transform:translate(-50%,20px)}8%{opacity:1;transform:translate(-50%,0)}85%{opacity:1}100%{opacity:0}}
+.mg{display:grid;gap:6px}.mg .entry{gap:2px}.mg .entry b{font-size:13px}
+.chips{display:flex;gap:4px;flex-wrap:wrap}.chips button{padding:5px 11px;border-radius:999px;border:2px solid var(--ink);background:#fff;font-weight:700;font-size:13px}.chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+.book{max-width:30rem;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);grid-template-rows:auto auto 1fr auto;overflow:hidden}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{padding:6px 11px;border-radius:999px;border:2px solid var(--ink);background:#fff;font-weight:700;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.book-body{overflow:auto;min-height:0;display:grid;gap:8px;align-content:start;font-size:13.5px;font-weight:700;line-height:1.6;touch-action:pan-y;padding-right:2px}
+.entry{border:2px solid var(--ink);border-radius:10px;padding:8px 10px;background:#fff;display:grid;gap:4px}
+.entry b{font-size:14px}
+.entry small{opacity:.8;font-size:12px}
+.entry.locked{opacity:.5;background:transparent;border-style:dashed}
+.entry.active{background:#f3f8e6;border-color:var(--leaf)}
+.slotrow{padding:0;overflow:hidden}
+.slotbtn{all:unset;display:block;padding:8px 10px;cursor:pointer;font-size:13px;font-weight:700;line-height:1.6}
+.slotbtn em{float:right;font-style:normal;font-size:11px;font-weight:700;color:var(--red)}
+.cands{display:grid;gap:6px;padding:0 10px 10px}
+.cand{display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1.5px dashed rgba(42,33,24,.3);padding-top:6px;font-size:12.5px}
+.home-top{display:flex;gap:12px;align-items:center}
+.home-top canvas{width:110px;height:110px;flex:none;background:#efe1bf;border:2px solid var(--ink);border-radius:12px}
+.day{border-bottom:2px dashed rgba(42,33,24,.3);padding-bottom:6px}
+.day b{font-family:var(--display);font-weight:400;color:var(--red)}
+.toggle{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:15px;padding:8px 0;border-bottom:2px dashed rgba(42,33,24,.25)}
+.toggle button{min-width:5rem;padding:6px 12px;border-radius:999px;border:2.5px solid var(--ink);font-weight:700;background:#fff}
+.toggle button[aria-pressed="true"]{background:var(--sun)}
+.statgrid{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0;font-size:12.5px}
+.statgrid dt{opacity:.7}.statgrid dd{margin:0;font-weight:700}
+.dexgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:8px}
+.dexgrid canvas{width:64px;height:64px;justify-self:center}
+.ladder{display:flex;gap:4px;align-items:center;flex-wrap:wrap;font-size:12px;font-weight:700}
+.ladder span{padding:3px 8px;border:2px solid var(--ink);border-radius:8px;background:#fff}
+.ladder span.done{background:var(--sun)}
+.ladder span.now{background:var(--red);color:#fff}
+.ladder span.lock{opacity:.45}
+
+.title-wrap{width:100%;max-width:27rem;display:grid;gap:16px}
+.title{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(50px,15vw,84px);line-height:1;color:var(--paper);text-shadow:4px 4px 0 var(--ink);-webkit-text-stroke:2px var(--ink);transform:rotate(-3deg);transform-origin:left}
+.title span{color:var(--sun)}
+.sub{margin:0;font-weight:900;font-size:16px;background:var(--paper);border:2.5px solid var(--ink);display:inline-block;padding:4px 10px;box-shadow:3px 3px 0 var(--ink);justify-self:start}
+.how{list-style:none;margin:0;padding:12px 14px;display:grid;gap:6px;background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;font-size:13.5px;font-weight:700;line-height:1.55;box-shadow:3px 3px 0 var(--ink)}
+.how b{color:var(--red)}
+#title{background:linear-gradient(180deg,rgba(42,33,24,.05),rgba(42,33,24,.45))}
+
+#cine{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);display:flex;justify-content:center}
+#cine .talk-box{background:rgba(244,234,210,.96)}
+.diary-scroll{max-height:34vh;overflow:auto;display:grid;gap:6px;font-size:13px;font-weight:700;line-height:1.6;touch-action:pan-y}
+#endRank{font-size:13px;padding:3px 12px;background:var(--red)}
+@media (max-width:380px){.me{width:54vw}#mini{width:68px;height:68px}}
+@media (prefers-reduced-motion:reduce){#banner.show,#areaName.show,#bossIntro.show{animation-duration:.01s}}
+</style>
+<canvas id="cv" aria-label="ゲーム画面"></canvas>
+
+<div id="hud" hidden>
+  <div class="card me">
+    <div class="me-top"><span>ダンゴムシ</span><small id="titleTag" class="ttag" hidden></small><small id="lv">Lv1</small><small id="dangoTag" class="dtag" hidden>蜜</small><span class="spacer"></span><small id="hpText">40/40</small></div>
+    <div class="bar"><i id="hpBar" style="width:100%"></i></div>
+    <div class="bar xp"><i id="xpBar" style="width:0%"></i></div>
+    <div class="ally-box" id="allyBox" hidden><span id="allyName">子分</span><div class="bar al"><i id="allyBar" style="width:100%"></i></div><span id="allyName2" hidden></span><div class="bar al" id="allyBar2w" hidden><i id="allyBar2" style="width:100%"></i></div><div class="bar bond"><i id="bondBar" style="width:0%"></i></div></div>
+  </div>
+  <span class="spacer"></span>
+  <div class="side">
+    <div class="card date"><span id="date">8月1日</span><small id="areaSmall">地べた</small></div>
+    <canvas id="mini" width="184" height="184" aria-label="地図"></canvas>
+    <button class="mini" id="pauseBtn" type="button">てちょう</button>
+  </div>
+</div>
+<div id="obj" hidden></div>
+<div id="areaName" hidden><b id="areaNameB">地べた</b><small id="areaNameS"></small></div>
+<div id="banner" hidden><span id="bannerT"></span><small id="bannerS"></small></div>
+<div id="achPop" hidden><small>称号を 手に入れた</small><b id="achName"></b><span id="achDesc"></span></div>
+<div id="bossIntro" hidden><div><small id="bossIntroSub">番長</small><b id="bossIntroName">オサ</b></div></div>
+<button id="skipBtn" type="button" hidden>スキップ ▶▶</button>
+<div id="coach" hidden><span id="coachT"></span><button type="button" id="coachX" aria-label="説明を とじる">×</button></div>
+<div id="orderMenu" hidden></div>
+<div id="stickHint" hidden>左がわを なぞって うごく。<br>すみか（葉っぱの家）で 休める。</div>
+<div id="btns" hidden>
+  <button class="bt" id="bCombo" type="button" hidden>連携</button>
+  <button class="bt" id="bRoll" type="button">まる<br>まる<span class="ctag" id="rollTag" hidden></span></button>
+  <button class="bt" id="bBite" type="button">かむ<span class="ctag" id="biteTag" hidden></span></button>
+</div>
+<div id="talk" hidden><div class="talk-box"><p class="talk-who" id="talkWho"></p><p class="talk-text" id="talkText"></p><div id="talkChoices"></div><span class="talk-next" id="talkNext">タップで つぎへ ▶</span></div></div>
+<div id="cine" hidden><div class="talk-box"><p class="talk-who" id="cineWho"></p><p class="talk-text" id="cineText"></p><span class="talk-next">タップで つぎへ ▶</span></div></div>
+
+<div class="overlay" id="partCard" hidden>
+  <div class="panel">
+    <div class="pc-head">
+      <canvas id="pcCanvas" width="208" height="208"></canvas>
+      <div><span class="tag" id="pcSlot">頭</span><h2 id="pcName"></h2><span id="pcRar"></span><span class="small" id="pcQ"></span></div>
+    </div>
+    <p id="pcDesc"></p>
+    <div class="cmp" id="pcCmp"></div>
+    <div id="pcNotes" style="display:grid;gap:6px"></div>
+    <p id="pcNow" class="small"></p>
+    <div class="pc-btns">
+      <button class="go" id="pcEquip" type="button">からだに つける</button>
+      <button class="go" id="pcMerge" type="button">いまのを ★に</button>
+      <button class="go" id="pcSwapMerge" type="button">拾った方を ★に</button>
+      <button class="go alt" id="pcStore" type="button">すみかへ おくる</button>
+      <button class="go alt" id="pcEat" type="button">たべる</button>
+      <button class="go alt" id="pcLeave" type="button">あとで</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="sumikaCard" hidden>
+  <div class="panel book">
+    <div><h2>すみか</h2><p class="small">ひと休み。体力が もどって、きろく した。</p></div>
+    <div class="tabs" role="tablist" id="homeTabs">
+      <button type="button" role="tab" data-tab="body" aria-selected="true">からだ</button>
+      <button type="button" role="tab" data-tab="store" aria-selected="false">もちもの <span id="homeStoreN"></span></button>
+      <button type="button" role="tab" data-tab="ally" aria-selected="false">なかま</button>
+      <button type="button" role="tab" data-tab="dojo" aria-selected="false">けいこ</button>
+      <button type="button" role="tab" data-tab="quest" aria-selected="false">たのみ</button>
+      <button type="button" role="tab" data-tab="map" aria-selected="false">ちず</button>
+    </div>
+    <div class="book-body" id="homeBody"></div>
+    <div class="row"><button class="go" id="homeGo" type="button">でかける</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="wazaCard" hidden style="z-index:4">
+  <div class="panel waza"><small class="wz-k">わざを おぼえた！</small><h2 id="wzName"></h2>
+    <div class="wz-row"><span class="wz-btn" id="wzBtn">まるまる</span><p id="wzHow"></p></div>
+    <p class="small" id="wzParts"></p>
+    <button class="go" id="wzOk" type="button">わかった</button></div>
+</div>
+<div class="overlay" id="confirmCard" hidden style="z-index:5">
+  <div class="panel"><p id="confirmText"></p><div class="row"><button class="go" id="confirmYes" type="button">はい</button><button class="go alt" id="confirmNo" type="button">やめる</button></div></div>
+</div>
+
+<div class="overlay" id="downCard" hidden>
+  <div class="panel"><h2>やられた…</h2><p id="downText"></p><div class="row"><button class="go" id="downGo" type="button">すみかで 目をさます</button></div></div>
+</div>
+
+<div class="overlay" id="clearCard" hidden>
+  <div class="panel">
+    <span class="tag" id="clearDate">8月</span>
+    <h2 id="clearTitle">地べたを しめた！</h2>
+    <p id="clearText"></p>
+    <div class="ladder" id="clearLadder"></div>
+    <div class="row"><button class="go" id="clearGo" type="button">つぎへ すすむ</button><button class="go alt" id="clearStay" type="button">もう少し ここに いる</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="bookCard" hidden>
+  <div class="panel book">
+    <h2>夏休みの てちょう</h2>
+    <div class="tabs" role="tablist" id="tabs">
+      <button type="button" role="tab" data-tab="body" aria-selected="true">からだ</button>
+      <button type="button" role="tab" data-tab="waza" aria-selected="false">わざ</button>
+      <button type="button" role="tab" data-tab="zukan" aria-selected="false">ずかん</button>
+      <button type="button" role="tab" data-tab="parts" aria-selected="false">部位</button>
+      <button type="button" role="tab" data-tab="ach" aria-selected="false">称号</button>
+      <button type="button" role="tab" data-tab="nikki" aria-selected="false">にっき</button>
+      <button type="button" role="tab" data-tab="set" aria-selected="false">せってい</button>
+    </div>
+    <div class="book-body" id="bookBody"></div>
+    <div class="row"><button class="go" id="resume" type="button">つづける</button><button class="go alt" id="toTitle" type="button">タイトルへ</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="endCard" hidden>
+  <div class="panel">
+    <span class="tag" id="endRank">林の番長</span>
+    <h2>ひと夏の番長</h2>
+    <p id="endLead">ひと夏の 絵日記。</p>
+    <dl class="statgrid" id="endStats"></dl>
+    <div class="diary-scroll" id="endDiary"></div>
+    <div class="row"><button class="go" id="endNext" type="button">来年の夏へ</button><button class="go alt" id="endGo" type="button">タイトルへ</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="title">
+  <div class="title-wrap">
+    <h1 class="title">ひと夏の<br><span>番長</span></h1>
+    <p class="sub" id="titleSub">ダンゴムシ、ひと夏の 成り上がり</p>
+    <ul class="how">
+      <li>夏休みの 雑木林。いちばん奥の 樹液だまり「番長の座」に すわれるのは、林で いちばん つよい虫だけ。</li>
+      <li><b>左がわを なぞる</b>：うごく ／ <b>かむ</b>：こうげき ／ <b>まるまる</b>：おしてる間は かたい、はなすと 突進</li>
+      <li>勝った相手の <b>部位</b> を からだに つけよう。組み合わせで <b>わざ</b> が 生まれる。<b>すみか</b> で 休んで、つけかえ・合成・子分の 入れかえ。</li>
+    </ul>
+    <div class="row"><button class="go" id="contBtn" type="button" hidden>つづきから</button><button class="go" id="start" type="button">はじめから</button><button class="go alt" id="ngBtn" type="button" hidden>来年の夏へ</button></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/art.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/world.js"></script>
+<script src="js/game.js"></script>
+<script src="js/v14.js"></script>
+<script src="js/v15.js"></script>
+<script src="js/v16.js"></script>
+<script src="js/v17.js"></script>
+<script src="js/v18.js"></script>
+<script src="js/v19.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+
+</body></html>
