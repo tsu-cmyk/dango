@@ -65,7 +65,7 @@ function eyes(r,x,y,sz,col){for(const s of [-1,1]){dot(x*r,s*y*r,sz*r,col||INK);
 
 /* ---------- mouthparts ---------- */
 const MAND={ago:{L:0.42,c:0.35,t:0.1},oago:{L:0.85,c:0.42,t:0.12,tooth:1},kiba:{L:0.3,c:0.6,t:0.1},kamikiri:{L:0.48,c:0.22,t:0.16},
-  hirata:{L:0.82,c:0.08,t:0.16,teeth:4},kongou:{L:0.55,c:0.32,t:0.15,tooth:1},onizuno:{L:1.05,c:0.4,t:0.17,teeth:3},kuwa:{L:1.22,c:0.24,t:0.12,teeth:5},kokuwa:{L:0.6,c:0.3,t:0.12,tooth:1},hiari:{L:0.5,c:0.42,t:0.12,tooth:1},gokegumo:{L:0.3,c:0.6,t:0.1}};
+  hirata:{L:0.82,c:0.08,t:0.16,teeth:4},kongou:{L:0.55,c:0.32,t:0.15,tooth:1},onizuno:{L:1.05,c:0.4,t:0.17,teeth:3},kuwa:{L:1.22,c:0.24,t:0.12,teeth:5},kokuwa:{L:0.6,c:0.3,t:0.12,tooth:1},hiari:{L:0.5,c:0.42,t:0.12,tooth:1},miyama:{L:1.15,c:0.3,t:0.15,teeth:4},hanmyou:{L:0.66,c:0.52,t:0.11,teeth:3},nokogiri:{L:1.02,c:0.34,t:0.13,teeth:7},gokegumo:{L:0.3,c:0.6,t:0.1}};
 /* drawn at the head's front edge (origin) */
 function mandibles(r,type,open,col){
   const m=MAND[type]||MAND.ago,L=m.L*r,o=clamp(open,0,1.3);
@@ -217,6 +217,7 @@ BODY.cricket=(T,r,o)=>{
     for(const s of [-1,1])inked(()=>{ctx.beginPath();ctx.moveTo(0.15*r,s*r*0.03);ctx.quadraticCurveTo(-0.3*r,s*r*0.3,-1.15*r,s*r*0.06);ctx.quadraticCurveTo(-0.5*r,s*r*0.02,0.15*r,s*r*0.03);ctx.closePath();},shade(o.col,-0.12),1.3);
     ctx.strokeStyle='rgba(42,33,24,.3)';ctx.lineWidth=0.8;for(const s of [-1,1]){ctx.beginPath();ctx.moveTo(0.05*r,s*r*0.06);ctx.lineTo(-1.0*r,s*r*0.08);ctx.stroke();}
   }
+  if(o.type==='okera')for(const s of [-1,1]){const ph=Math.sin(o.walk*1.6+(s>0?Math.PI:0))*0.15;ctx.save();ctx.translate(0.55*r,s*0.22*r);ctx.rotate(s*(0.55+ph));inked(()=>{ctx.beginPath();ctx.moveTo(0,-0.08*r);ctx.lineTo(0.38*r,-0.12*r);ctx.lineTo(0.44*r,0.16*r);ctx.lineTo(0,0.09*r);ctx.closePath();},shade(o.col,0.1),1.4);for(let i=0;i<4;i++)inked(()=>{ctx.beginPath();ctx.moveTo(0.4*r,-0.1*r+i*0.07*r);ctx.lineTo(0.56*r,-0.08*r+i*0.08*r);ctx.lineTo(0.41*r,-0.05*r+i*0.07*r);ctx.closePath();},o.dark,0.8);ctx.restore();}
   ell(0.62*r,0,0.2*r,0.21*r,o.col,1.6);
   antennae(r,0.75,batta?0.7:1.3,batta?0.6:0.5,batta?{w:1.1}:{back:1,w:1});
   eyes(r,0.68,0.15,0.06);
@@ -276,12 +277,14 @@ BODY.beetle=(T,r,o)=>{
   inked(el,o.col,2);
   ctx.save();el();ctx.clip();
   ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=1;for(const s of [-1,1])for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(0.1*r,s*r*i*0.12);ctx.quadraticCurveTo(-0.5*r,s*r*(i*0.13+0.03),-1.0*r,s*r*i*0.04);ctx.stroke();}
+  if(o.type==='gengo'){ctx.strokeStyle='#d8b040';ctx.lineWidth=r*0.14;el();ctx.stroke();}
+  if(o.type==='tamamushi'){for(const s of [-1,1]){ctx.fillStyle='#b8306a';ctx.beginPath();ctx.ellipse(-0.42*r,s*0.3*r,0.6*r,0.07*r,0,0,TAU);ctx.fill();}const g=ctx.createLinearGradient(-r,-r,r,r);g.addColorStop(0,'rgba(80,200,255,0)');g.addColorStop(0.5,'rgba(140,240,255,.35)');g.addColorStop(1,'rgba(80,200,255,0)');ctx.fillStyle=g;ctx.fillRect(-1.2*r,-r,2*r,2*r);}
   if(o.type==='gomimushi'){for(const [x,y] of [[-0.15,0.25],[-0.15,-0.25],[-0.7,0.22],[-0.7,-0.22]]){ctx.fillStyle=o.dark;ctx.beginPath();ctx.ellipse(x*r,y*r,r*0.16,r*0.1,0,0,TAU);ctx.fill();}}
   ctx.restore();
   ctx.strokeStyle=INK;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0.18*r,0);ctx.lineTo(-1.06*r,0);ctx.stroke();
   gloss(-0.4*r,-0.28*r,r*0.32,r*0.07,0.4);
   // pronotum
-  const big=T.head==='kuwa'||T.head==='hirata';
+  const big=T.head==='kuwa'||T.head==='hirata'||T.head==='nokogiri';
   inked(()=>{ctx.beginPath();ctx.moveTo(0.14*r,-0.42*r);ctx.quadraticCurveTo(0.5*r,-0.46*r,0.52*r,-0.22*r);ctx.lineTo(0.52*r,0.22*r);ctx.quadraticCurveTo(0.5*r,0.46*r,0.14*r,0.42*r);ctx.quadraticCurveTo(0.2*r,0,0.14*r,-0.42*r);ctx.closePath();},o.dark===INK?shade(o.col,-0.15):o.col,1.8);
   gloss(0.32*r,-0.2*r,r*0.12,r*0.05,0.35);
   // head
@@ -336,6 +339,7 @@ BODY.spider=(T,r,o)=>{
   ctx.restore();
   gloss(-0.6*r,-0.24*r,r*0.3,r*0.07,0.35);
   ell(0.28*r,0,0.34*r,0.3*r,o.dark,1.8);
+  if(o.type==='haetori'){for(const s of [-1,1]){dot(0.52*r,s*0.11*r,0.11*r,'#141010');dot(0.55*r,s*0.09*r,0.04*r,'#fff');}ctx.strokeStyle='#e8e0d0';ctx.lineWidth=r*0.07;ctx.beginPath();ctx.moveTo(-0.15*r,0);ctx.lineTo(-1.1*r,0);ctx.stroke();}
   ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0.05*r,0);ctx.lineTo(0.45*r,0);ctx.stroke();
   for(const s of [-1,1])limb([[0.55*r,s*r*0.1],[0.75*r,s*r*0.2],[0.82*r,s*r*0.12]],Math.max(1.2,r*0.06),o.dark);
   for(const [x,y,z] of [[0.56,-0.07,0.055],[0.56,0.07,0.055],[0.5,-0.16,0.04],[0.5,0.16,0.04],[0.46,-0.05,0.03],[0.46,0.05,0.03]])dot(x*r,y*r,z*r,'#f4ead2');
@@ -575,7 +579,7 @@ function drawBall(r,col,band,spin,style){
    the player's dangomushi (pill bug) — its parts are visibly attached
    ===================================================================== */
 const DANGO_BODY='#8796ab',DANGO_BAND='#5d6b80',DANGO_HEAD='#6c7a8f';
-const BACK_COL={tsuyahada:'#15151c',koura:'#d63a2a',kanabun:'#3f8a5a',mino:'#8a7a5a',kara:'#c0503a',kougyoku:'#e0302a',raiden:DANGO_BODY,gekka:DANGO_BODY,kusai:'#6b7f3a',hane:DANGO_BODY,ageha:DANGO_BODY,kumahane:DANGO_BODY,murasaki:DANGO_BODY,none:DANGO_BODY};
+const BACK_COL={gengo:'#2a3a28',tamamushi:'#2aa070',joouhane:DANGO_BODY,wakagashira:'#3a2010',tsuyahada:'#15151c',koura:'#d63a2a',kanabun:'#3f8a5a',mino:'#8a7a5a',kara:'#c0503a',kougyoku:'#e0302a',raiden:DANGO_BODY,gekka:DANGO_BODY,kusai:'#6b7f3a',hane:DANGO_BODY,ageha:DANGO_BODY,kumahane:DANGO_BODY,murasaki:DANGO_BODY,none:DANGO_BODY};
 let DMETA=null;
 function mixHex(a,b,k){const p=h=>{const n=parseInt(h.slice(1),16);return [n>>16&255,n>>8&255,n&255];};if(!/^#[0-9a-f]{6}$/i.test(a))return a;const x=p(a),y=p(b);return 'rgb('+x.map((v,i)=>Math.round(v+(y[i]-v)*k)).join(',')+')';}
 /* rare parts take on a tint: blue for めずらしい, gold for 伝説; ★ deepens it */
@@ -594,7 +598,7 @@ function partAuras(r){
 }
 function partCol(slot,id){
   return tintFor(slot,({ago:'#a2412b',oago:'#3d5c4f',kiba:'#5a3b6a',kamikiri:'#2f2f3a',hirata:'#2a1e16',kuwa:'#3a2418',okama:'#7ea845',mizukama:'#8a7650',zari:'#c8402a',tsuno:'#5a3420',
-    kama:'#c79e62',batta:'#86b043',geji:'#a08c64',amenbo:'#5a4c3e',mukade:'#c84a2a',hasami:'#8a4a26',hari:'#5a3a10',mitsu:'#e8a82a',gomimushi:'#d07a2a',ohari:'#3a2410',kongou:'#d8a030',onizuno:'#6a1e10',kazekiri:'#4ea86a',ougon:'#f2c43a',hiari:'#d8452a',gokegumo:'#c8202a',hiaribari:'#e0502a'})[id]||'#6c7a8f');
+    kama:'#c79e62',batta:'#86b043',geji:'#a08c64',amenbo:'#5a4c3e',mukade:'#c84a2a',hasami:'#8a4a26',hari:'#5a3a10',mitsu:'#e8a82a',gomimushi:'#d07a2a',ohari:'#3a2410',kongou:'#d8a030',onizuno:'#6a1e10',kazekiri:'#4ea86a',ougon:'#f2c43a',hiari:'#d8452a',gokegumo:'#c8202a',hiaribari:'#e0502a',miyama:'#8a5a2a',shihan:'#5a8a3a',okera:'#8a6a44',hanmyou:'#e2d6b0',tamamushi:'#2aa070',shouryou:'#a8c858',itoibo:'#5a4a3e',tagame:'#7a6a48',gengo:'#2a3a28',nokogiri:'#8a4a20'})[id]||'#6c7a8f');
 }
 function dangoLegs(ids,r,walk){
   const lg=ids.legs;
@@ -603,7 +607,9 @@ function dangoLegs(ids,r,walk){
   if(lg==='mukade'){for(let i=0;i<11;i++)for(const s of [-1,1]){const x=r*(0.6-i*0.12),ph=Math.sin(walk*2+i*0.8+(s>0?Math.PI:0))*r*0.1;limb([[x,s*r*0.58],[x+ph,s*r*0.92],[x+ph-r*0.08,s*r*1.02]],Math.max(1.2,r*0.07),partCol('legs','mukade'));}return;}
   const stub=lg==='std'?7:lg==='amenbo'?3:5;
   for(let i=0;i<stub;i++)for(const s of [-1,1]){const x=r*(0.6-i*0.2),ph=Math.sin(walk*1.4+i*0.9+(s>0?1.5:0))*r*0.12;ctx.strokeStyle=INK;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,s*r*0.6);ctx.lineTo(x+ph,s*r*0.9);ctx.stroke();}
-  if(lg==='kama'||lg==='batta'||lg==='kazekiri'){const col=partCol('legs',lg),L=lg==='kama'?1:lg==='kazekiri'?1.25:1.1;
+  if(lg==='okera'){const col=partCol('legs',lg);for(const s of [-1,1]){const ph=Math.sin(walk*1.6+(s>0?Math.PI:0))*0.1;ctx.save();ctx.translate(0.45*r,s*0.55*r);ctx.rotate(s*(0.5+ph));
+      inked(()=>{ctx.beginPath();ctx.moveTo(0,-0.12*r);ctx.lineTo(0.42*r,-0.16*r);ctx.lineTo(0.5*r,0.2*r);ctx.lineTo(0,0.12*r);ctx.closePath();},col,1.6);for(let i=0;i<4;i++){inked(()=>{ctx.beginPath();ctx.moveTo(0.42*r+i*0.02*r,-0.12*r+i*0.09*r);ctx.lineTo(0.62*r,-0.1*r+i*0.1*r);ctx.lineTo(0.44*r+i*0.02*r,-0.07*r+i*0.09*r);ctx.closePath();},shade(col,-0.2),1);}ctx.restore();}}
+  if(lg==='kama'||lg==='batta'||lg==='kazekiri'||lg==='shouryou'){const col=partCol('legs',lg),L=lg==='kama'?1:lg==='kazekiri'?1.25:lg==='shouryou'?1.4:1.1;
     for(const s of [-1,1]){const ph=Math.sin(walk*1.4+(s>0?Math.PI:0))*0.08,ax=-0.15*r,ay=s*0.6*r,kx=-1.15*r*L,ky=s*(1.0+ph)*r,fx=-0.4*r,fy=s*(1.22+ph)*r;
       inked(()=>{ctx.beginPath();ctx.moveTo(ax,ay-s*r*0.1);ctx.quadraticCurveTo((ax+kx)/2,(ay+ky)/2+s*r*0.38,kx,ky);ctx.quadraticCurveTo((ax+kx)/2,(ay+ky)/2-s*r*0.05,ax,ay+s*r*0.1);ctx.closePath();},col,1.6);
       ctx.strokeStyle='rgba(42,33,24,.35)';ctx.lineWidth=0.9;for(let i=1;i<5;i++){const t=i/5;ctx.beginPath();ctx.moveTo(ax+(kx-ax)*t,ay+(ky-ay)*t+s*r*0.14);ctx.lineTo(ax+(kx-ax)*(t+0.08),ay+(ky-ay)*(t+0.08)+s*r*0.03);ctx.stroke();}
@@ -612,10 +618,13 @@ function dangoLegs(ids,r,walk){
     for(const s of [-1,1]){ctx.beginPath();ctx.moveTo(-0.0*r,s*r*0.55);ctx.lineTo(-0.05*r,s*r*0.85);ctx.lineTo(-r*(0.5+sw*s),s*r*2.0);ctx.stroke();
       ctx.beginPath();ctx.moveTo(-0.4*r,s*r*0.5);ctx.lineTo(-0.5*r,s*r*0.75);ctx.lineTo(-r*2.1,s*r*(1.1-sw*s*0.5));ctx.stroke();}}
 }
+function spinneret(r){inked(ellP(-0.16*r,0,0.24*r,0.2*r),partCol('tail','itoibo'),1.5);for(const s of [-1,0,1])inked(ellP(-0.4*r,s*0.09*r,0.07*r,0.05*r),'#3a2e24',1);
+  ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-0.46*r,0);ctx.quadraticCurveTo(-0.8*r,Math.sin(ART_T*3)*0.12*r,-1.15*r,0.05*r);ctx.stroke();}
 function dangoTail(ids,r,o){
   const t=ids.tail;if(t==='none')return;
   ctx.save();ctx.translate(-1.08*r,0);
   if(t==='hasami')forceps(r*0.95,partCol('tail',t),o.bite?0.8:0.3);
+  else if(t==='itoibo')spinneret(r);
   else if(t==='gomimushi'){inked(ellP(-0.18*r,0,0.26*r,0.22*r),partCol('tail',t),1.5);ctx.fillStyle='rgba(170,190,80,.45)';for(let i=0;i<3;i++)dot(-0.5*r-i*0.22*r,Math.sin(ART_T*3+i)*r*0.1,r*(0.1+i*0.04),'rgba(170,190,80,.4)');}
   else{stinger(r*0.95,t==='ohari'||t==='ougon',partCol('tail',t));if(t==='mitsu'||t==='ougon'){dot(-0.42*r,0,r*0.09,'#f2b632');dot(-0.44*r,-0.03*r,r*0.03,'#fff8d0');}}
   ctx.restore();
@@ -623,10 +632,12 @@ function dangoTail(ids,r,o){
 function dangoBack(ids,r,o){
   const b=ids.back;if(b==='none')return;
   const dash=o.dash?1:0;
-  if(b==='koura'||b==='kanabun'||b==='tsuyahada'){
+  if(b==='koura'||b==='kanabun'||b==='tsuyahada'||b==='wakagashira'||b==='tamamushi'||b==='gengo'){
     const c=tintFor('back',BACK_COL[b]);inked(ellP(-0.22*r,0,0.86*r,0.74*r),c,2.2);
     ctx.save();ctx.beginPath();ctx.ellipse(-0.22*r,0,0.86*r,0.74*r,0,0,TAU);ctx.clip();
     if(b==='tsuyahada'){for(const [x,y,s] of [[0.1,-0.4,0.09],[0.12,0.36,0.08],[-0.4,-0.5,0.1],[-0.42,0.48,0.09],[-0.2,0.05,0.07],[-0.75,-0.25,0.08],[-0.78,0.2,0.07]])dot(r*x,r*y,r*s,'#f4f4f0');}
+    else if(b==='gengo'){ctx.strokeStyle='#d8b040';ctx.lineWidth=r*0.12;ctx.beginPath();ctx.ellipse(-0.22*r,0,0.8*r,0.68*r,0,0,TAU);ctx.stroke();gloss(-0.1*r,-0.3*r,r*0.4,r*0.1,0.6);}
+    else if(b==='tamamushi'){for(const s of [-1,1]){ctx.fillStyle='#b8306a';ctx.beginPath();ctx.ellipse(-0.25*r,s*0.36*r,0.75*r,0.09*r,0,0,TAU);ctx.fill();ctx.fillStyle='rgba(240,200,80,.55)';ctx.beginPath();ctx.ellipse(-0.25*r,s*0.36*r,0.6*r,0.03*r,0,0,TAU);ctx.fill();}const g=ctx.createLinearGradient(-r,-r,r,r);g.addColorStop(0,'rgba(80,200,255,.0)');g.addColorStop(0.5+0.3*Math.sin(ART_T*1.5),'rgba(120,230,255,.35)');g.addColorStop(1,'rgba(80,200,255,0)');ctx.fillStyle=g;ctx.fillRect(-1.2*r,-r,2*r,2*r);}
     else if(b==='koura'){for(const [x,y,s] of [[0.15,-0.38,0.13],[0.15,0.38,0.13],[-0.45,-0.45,0.15],[-0.45,0.45,0.15],[-0.15,0,0.12],[-0.8,-0.22,0.1],[-0.8,0.22,0.1]])dot(r*x,r*y,r*s,INK);}
     else{const g=ctx.createLinearGradient(0,-r,0,r);g.addColorStop(0,'rgba(255,255,220,.5)');g.addColorStop(0.5,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(0,0,0,.25)');ctx.fillStyle=g;ctx.fillRect(-1.2*r,-r,2*r,2*r);}
     ctx.restore();ctx.strokeStyle=INK;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(0.6*r,0);ctx.lineTo(-1.06*r,0);ctx.stroke();gloss(-0.35*r,-0.35*r,r*0.35,r*0.09,0.5);
@@ -651,14 +662,15 @@ function dangoBack(ids,r,o){
     else{/* folded back over the body */
       ctx.save();ctx.translate(0.3*r,0);lepWings(r*0.9,T,0,false,1.4+Math.sin(ART_T*2)*0.03);ctx.restore();
     }
-  }else if(b==='kumahane'){
+  }else if(b==='kumahane'||b==='joouhane'){
     sweptWings(r*1.15,0.3,dash?ART_T*40:ART_T*2,{blur:!!dash,len:1.05,w:0.3,fill:'rgba(80,70,95,.5)',amp:dash?0.4:0.05});
     ctx.save();ctx.translate(0.42*r,0);ctx.fillStyle='#e8c84a';ctx.beginPath();for(let k=0;k<16;k++){const a=k/16*TAU,rr=r*(0.24+(k%2)*0.04);ctx.lineTo(Math.cos(a)*rr*0.7,Math.sin(a)*rr*1.6);}ctx.closePath();ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=1.3;ctx.stroke();ctx.restore();
   }
 }
 function dangoHead(ids,r,o){
   const h=ids.head,bite=o.bite?1:0,hx=1.0*r+bite*r*0.12;
-  if(h==='okama'){ctx.save();ctx.translate(0.82*r,0);raptor(r*1.05,bite?1.1:0.15,partCol('head',h),'#45661e');ctx.restore();}
+  if(h==='tagame'){ctx.save();ctx.translate(0.82*r,0);raptor(r*1.05,bite?1.1:0.35,partCol('head',h),'#4a3a20');ctx.restore();}
+  else if(h==='okama'||h==='shihan'){ctx.save();ctx.translate(0.82*r,0);raptor(r*(h==='shihan'?1.2:1.05),bite?1.1:0.15,partCol('head',h),'#45661e');ctx.restore();}
   else if(h==='mizukama'){ctx.save();ctx.translate(0.85*r,0);raptor(r*1.0,bite?1.25:0.1,partCol('head',h),'#4a3a20',true);ctx.restore();}
   else if(h==='zari'){for(const s of [-1,1])claw(r,0.75*r,s*r*0.4,(1.15+bite*0.25)*r,s*r*0.62,0.62,bite?1:0.25,partCol('head',h),s);}
   else if(h==='tsuno'){const lift=bite*0.15;inked(()=>{ctx.beginPath();ctx.moveTo(0.95*r,-0.12*r);ctx.quadraticCurveTo(1.6*r,-0.15*r-lift*r,2.0*r,-0.06*r);ctx.lineTo(2.3*r,-0.26*r);ctx.lineTo(2.18*r,-0.03*r);ctx.lineTo(2.38*r,0);ctx.lineTo(2.18*r,0.03*r);ctx.lineTo(2.3*r,0.26*r);ctx.lineTo(2.0*r,0.06*r);ctx.quadraticCurveTo(1.6*r,0.15*r+lift*r,0.95*r,0.12*r);ctx.closePath();},partCol('head',h),2);}
@@ -705,20 +717,22 @@ function drawDango(ids,r,o){
 function drawPartIcon(slot,id,r){
   ctx.save();
   if(slot==='head'){
-    if(id==='okama'||id==='mizukama'){ctx.translate(-r*0.4,0);raptor(r,0.9,partCol(slot,id),'#45661e',id==='mizukama');}
+    if(id==='okama'||id==='mizukama'||id==='tagame'){ctx.translate(-r*0.4,0);raptor(r,0.9,partCol(slot,id),id==='tagame'?'#4a3a20':'#45661e',id==='mizukama');}
     else if(id==='zari'){claw(r,-r*0.5,r*0.2,r*0.1,0,0.8,0.5,partCol(slot,id),1);}
     else if(id==='tsuno'){ctx.translate(-r*1.1,0);inked(()=>{ctx.beginPath();ctx.moveTo(0,-0.14*r);ctx.quadraticCurveTo(0.8*r,-0.18*r,1.4*r,-0.06*r);ctx.lineTo(1.8*r,-0.36*r);ctx.lineTo(1.62*r,0);ctx.lineTo(1.8*r,0.36*r);ctx.lineTo(1.4*r,0.06*r);ctx.quadraticCurveTo(0.8*r,0.18*r,0,0.14*r);ctx.closePath();},partCol(slot,id),2);}
     else if(id==='mouth'){inked(ellP(0,0,0.4*r,0.55*r),DANGO_HEAD,1.8);}
     else{const L=(MAND[id]||MAND.ago).L;ctx.translate(-L*r*0.5,0);mandibles(r,id,0.6,partCol(slot,id));}
   }else if(slot==='legs'){
     if(id==='std'){for(let i=0;i<4;i++){ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-r*0.6+i*r*0.4,-r*0.3);ctx.lineTo(-r*0.6+i*r*0.4,r*0.3);ctx.stroke();}}
-    else if(id==='kama'||id==='batta'||id==='kazekiri'){ctx.translate(r*0.6,-r*0.25);ctx.scale(1,1);hopLegsSingle(r,partCol(slot,id),id!=='kama');}
+    else if(id==='okera'){for(const s of [-1,1]){ctx.save();ctx.translate(-r*0.3,s*r*0.35);ctx.rotate(s*0.3);inked(()=>{ctx.beginPath();ctx.moveTo(0,-0.14*r);ctx.lineTo(0.7*r,-0.2*r);ctx.lineTo(0.8*r,0.25*r);ctx.lineTo(0,0.14*r);ctx.closePath();},partCol(slot,id),1.8);for(let i=0;i<4;i++)inked(()=>{ctx.beginPath();ctx.moveTo(0.7*r+i*0.03*r,-0.16*r+i*0.11*r);ctx.lineTo(1.0*r,-0.12*r+i*0.12*r);ctx.lineTo(0.72*r+i*0.03*r,-0.08*r+i*0.11*r);ctx.closePath();},'#4a3420',1);ctx.restore();}}
+    else if(id==='kama'||id==='batta'||id==='kazekiri'||id==='shouryou'){ctx.translate(r*0.6,-r*0.25);ctx.scale(1,1);hopLegsSingle(r,partCol(slot,id),id!=='kama');}
     else if(id==='geji'||id==='amenbo'){ctx.strokeStyle=INK;ctx.lineWidth=1.6;for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(-r*0.2+i*r*0.2,-r*0.5);ctx.quadraticCurveTo(r*0.2,r*0.1,-r*0.8+i*r*0.3,r*(0.8+i*0.1));ctx.stroke();}ctx.strokeStyle=partCol(slot,id);ctx.lineWidth=0.8;ctx.setLineDash([2,3]);for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(-r*0.2+i*r*0.2,-r*0.5);ctx.quadraticCurveTo(r*0.2,r*0.1,-r*0.8+i*r*0.3,r*(0.8+i*0.1));ctx.stroke();}ctx.setLineDash([]);}
     else if(id==='mukade'){for(let i=0;i<5;i++)limb([[-r*0.8+i*r*0.4,-r*0.1],[-r*0.75+i*r*0.4,r*0.35],[-r*0.85+i*r*0.4,r*0.5]],2,partCol(slot,id));inked(()=>{ctx.beginPath();ctx.rect(-r,-r*0.3,r*2,r*0.25);},'#3a2a2a',1.5);}
   }else if(slot==='tail'){
     ctx.translate(r*0.5,0);
     if(id==='hasami')forceps(r*1.1,partCol(slot,id),0.4);
     else if(id==='gomimushi'){inked(ellP(-0.3*r,0,0.4*r,0.32*r),partCol(slot,id),1.6);}
+    else if(id==='itoibo'){ctx.translate(r*0.3,0);ctx.scale(2.2,2.2);spinneret(r);}
     else if(id!=='none'){ctx.scale(1.4,1.4);stinger(r,id==='ohari'||id==='ougon',partCol(slot,id));if(id==='mitsu'||id==='ougon')dot(-0.4*r,0,r*0.1,'#f2b632');}
   }else if(slot==='back'){
     ctx.translate(r*0.3,0);ctx.scale(0.8,0.8);dangoBack({back:id},r,{});

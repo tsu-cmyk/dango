@@ -83,7 +83,7 @@ function kzTalk(idx){
 }
 function tickBond(){
   if(S.dojo||S.state!=='play')return;for(const A of allies()){const r=A.rec;const was=kzReady(r);r.bt=(r.bt||0)+DT;
-  if(!was&&kzReady(r)){pop(A.x,A.y-A.r-26,'（兄貴、あとで 話が……）','#5f7d3a',true);banner(r.name+'が 話したそうだ','すみかの「なかま」で 話せる');}}
+  if(!was&&kzReady(r)){pop(A.x,A.y-A.r-26,'（兄貴、あとで 話が……）','#5f7d3a',true);toast(r.name+'が 話したそうだ','すみかの「なかま」で 話せる');}}
 }
 
 /* ---------------- typhoon summers (3年目〜) ---------------- */
@@ -209,10 +209,11 @@ function drawBgWorld(){
 
 /* ---------------- final boss prize ---------------- */
 function claimFinalPrize(){
-  const got=[];items=items.filter(it=>{if(it.p&&(it.p.id==='tsuno'||it.boss)){S.store.push(it.p);got.push(it.p);return false;}return true;});
-  if(!got.length){const p=mkPart('head','tsuno',1.2+S.cycle*0.15);S.store.push(p);got.push(p);}
-  S.finalPrize=got.map(p=>partName(p));DEX.parts.tsuno=true;saveDex();
-  diary('若頭の「'+S.finalPrize.join('」「')+'」を すみかに かざった。');
+  const fd=(TYPES[finalTypeId()]||TYPES.kabuto).drop||['head','tsuno'];const got=[];items=items.filter(it=>{if(it.p&&it.p.id===fd[1]){S.store.push(it.p);got.push(it.p);return false;}return true;});
+  if(!got.length){const p=mkPart(fd[0],fd[1],1.2+S.cycle*0.15);S.store.push(p);got.push(p);}
+  S.finalPrize=got.map(p=>partName(p));DEX.parts[fd[1]]=true;saveDex();
+  S.storyPrize=null;storyReward();
+  diary(finalName()+'の「'+S.finalPrize.join('」「')+'」を すみかに かざった。');
 }
 
 ACHS.push({id:'kizuna3',name:'兄弟の 盃',desc:'子分と 絆を 3まで ふかめる'},{id:'gimmick',name:'地の利',desc:'地形の しかけで 番長を 10回 ひるませる'});

@@ -25,11 +25,11 @@ function qRewardText(rw){return rw.k==='dango'?'蜜だんご ×'+rw.n:rw.k==='pa
 function qEnsure(){if(S.dojo)return;const day=dayNum();if(!S.quests||S.qDay!==day||S.qArea!==S.areaI||S.quests.every(q=>q.done)){const L=[];for(let k=0;k<20&&L.length<3;k++){const q=qMake();if(!L.some(o=>o.k===q.k))L.push(q);}S.quests=L;S.qDay=day;S.qArea=S.areaI;}}
 function qProgress(k,v,type){
   if(!S.quests)return;for(const q of S.quests){if(q.done||q.k!==k)continue;if(q.k==='kill'&&q.type!==type)continue;
-    const was=q.got;q.got=q.max?Math.max(q.got,v):q.got+(v||1);if(q.got!==was&&q.got<q.n&&!q.max)pop(P.x,P.y-50,'たのみ '+q.got+'/'+q.n,'#5f7d3a');
+    const was=q.got;q.got=q.max?Math.max(q.got,v):q.got+(v||1);if(q.got!==was&&q.got<q.n&&!q.max&&(q.n<=6||q.got%2===0))toast('たのみ '+q.got+'/'+q.n,q.text);
     if(q.got>=q.n){q.done=true;qReward(q);}}
 }
 function qReward(q){
-  const rw=q.reward;sfx('fanfare');banner('たのみごと 達成！',q.giver+'「ありがとう！」 → '+qRewardText(rw));tot('quests',1);
+  const rw=q.reward;sfx('fanfare');toast('たのみごと 達成！',q.giver+'「ありがとう！」 → '+qRewardText(rw));tot('quests',1);
   if(rw.k==='dango')gainDango(rw.n,P.x,P.y);
   else if(rw.k==='xp')addXP(rw.n,P.x,P.y-30);
   else if(rw.k==='bond'){for(const A of allies())A.rec.bt=(A.rec.bt||0)+rw.n;pop(P.x,P.y-40,'絆が ふかまった','#5f7d3a',true);}

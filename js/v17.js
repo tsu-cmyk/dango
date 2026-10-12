@@ -26,7 +26,7 @@ function rosterTick(){
   for(const r of S.roster){
     if(r.faint){if(r.restT==null)r.restT=REST_T;r.restT-=DT;
       if(r.restT<=0){r.faint=false;r.restT=0;r.hpFrac=0.5;const back=r.autoBack&&partyRejoin(r);r.autoBack=false;
-        banner(r.name+'が 元気に なった',back?'もどってきた！（体力は 半分）':'すみかで つれていける（体力は 半分）');}}
+        toast(r.name+'が 元気に なった',back?'もどってきた！（体力は 半分）':'すみかで つれていける（体力は 半分）');}}
     else if(!act.includes(r))r.hpFrac=Math.min(1,(r.hpFrac??1)+0.012*DT);
   }
 }
@@ -43,7 +43,7 @@ function ballSetup(){
   const n=Math.round(MAP.w*MAP.h/260000);for(let k=0;k<n*4&&MAP.balls.length<n;k++)ballAdd(acorn,false);
 }
 function ballAdd(acorn,far){for(let k=0;k<30;k++){const x=rnd(100,MAP.w-100),y=rnd(100,MAP.h-100);if(blocked(x,y,18)||inLair(x,y))continue;if(far&&Math.hypot(x-P.x,y-P.y)<700)continue;MAP.balls.push({x,y,r:acorn&&Math.random()<0.6?10:8,k:acorn&&Math.random()<0.6?'acorn':'pebble',vx:0,vy:0,fly:0,spin:rnd(0,TAU),hits:null});return;}}
-function launchBall(b,ang,sp,kick){b.vx=Math.cos(ang)*sp;b.vy=Math.sin(ang)*sp;b.fly=1;b.hits=new Set();sfx('clink');pop(b.x,b.y-18,kick?'ポン！':'カーン！',INK);S.shake=Math.max(S.shake,3);if(!DEX.ballTip){DEX.ballTip=true;saveDex();banner('小石を はじいた！','突進や かみつきで はじくと、敵に ぶつけられる');}}
+function launchBall(b,ang,sp,kick){b.vx=Math.cos(ang)*sp;b.vy=Math.sin(ang)*sp;b.fly=1;b.hits=new Set();sfx('clink');pop(b.x,b.y-18,kick?'ポン！':'カーン！',INK);S.shake=Math.max(S.shake,3);if(!DEX.ballTip){DEX.ballTip=true;saveDex();toast('小石を はじいた！','突進や かみつきで はじくと、敵に ぶつけられる');}}
 function ballTick(){
   if(!MAP||!MAP.balls)return;const acorn=['jibeta','kuchiki','miki','sakaba'].includes(AREA().id);
   for(const b of MAP.balls){

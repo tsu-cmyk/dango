@@ -65,7 +65,7 @@ function dangoActive(){return (S.dangoT||0)>0;}
 function makeDango(){const list=S.store.filter(p=>p.rar===0&&p.st===1&&!p.tr.length).sort((a,b)=>partScore(a)-partScore(b)).slice(0,3);if(list.length<3)return false;S.store=S.store.filter(p=>!list.includes(p));S.dango=(S.dango||0)+1;sfx('eat');diary('蜜だんごを つくった。');return true;}
 function useDango(){if(!(S.dango>0))return false;S.dango--;S.dangoT=DANGO_TIME;sfx('heal');tot('dango',1);diary('蜜だんごを つかった。甘い においが ただよう。');return true;}
 function gainDango(n,x,y){S.dango=(S.dango||0)+n;sfx('star');pop(x,y-30,'蜜だんご +'+n,'#b8860b',true);}
-function dangoTick(){if(S.dangoT>0&&!S.dojo){S.dangoT-=DT;if(Math.random()<DT*4)fx.push({x:P.x+rnd(-14,14),y:P.y+rnd(-14,14),vx:0,vy:-40,t:0,life:0.6,c:'#f2c43a'});if(S.dangoT<=0)banner('蜜だんごの においが 消えた','すみかで また つかえる');}}
+function dangoTick(){if(S.dangoT>0&&!S.dojo){S.dangoT-=DT;if(Math.random()<DT*4)fx.push({x:P.x+rnd(-14,14),y:P.y+rnd(-14,14),vx:0,vy:-40,t:0,life:0.6,c:'#f2c43a'});if(S.dangoT<=0)toast('蜜だんごの においが 消えた','すみかで また つかえる');}}
 function dangoRecruitMul(){return dangoActive()?4:1;}
 
 /* ---------------- follower pair banter (かけあい) ---------------- */

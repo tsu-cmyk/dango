@@ -18,6 +18,7 @@ function paintDango(canvas,eq,scale){
 }
 const UI={
   banner(t,s){$('bannerT').textContent=t;$('bannerS').textContent=s||'';$('bannerS').hidden=!s;const el=$('banner');el.hidden=false;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');clearTimeout(UI.btm);UI.btm=setTimeout(()=>{el.hidden=true;},2900);},
+  toast(t,s){const box=$('toasts');const el=document.createElement('div');el.className='toast';el.innerHTML='<b>'+esc(t)+'</b>'+(s?'<small>'+esc(s)+'</small>':'');box.appendChild(el);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),400);},3200);},
   say(lines,cb){UI.talkQ=lines.slice();UI.talkCb=cb;UI.choices=null;UI.showTalk();},
   showTalk(){
     const q=UI.talkQ;
@@ -58,6 +59,11 @@ const UI={
     if(!same){COMBOS.filter(c=>after.includes(c.id)&&!before.includes(c.id)).forEach(c=>notes+='<div class="note waza-note"><b>わざ「'+c.name+'」が 使えるように なる！</b><br>'+UI.wazaHTML(c,true)+'</div>');
       const ids=eqIds(neq);COMBOS.filter(c=>!after.includes(c.id)&&c.need.some(([sl])=>sl===p.s)).forEach(c=>{const ok=c.need.filter(([sl,l])=>l.includes(ids[sl]));if(ok.length===c.need.length-1&&ok.some(([sl])=>sl===p.s)){const miss=c.need.find(([sl,l])=>!l.includes(ids[sl]));notes+='<div class="note">あと '+SLOTNAME[miss[0]]+'しだいで わざ「'+(DEX.combos[c.id]?c.name:'？？？')+'」（'+c.hint+'）</div>';}});COMBOS.filter(c=>before.includes(c.id)&&!after.includes(c.id)).forEach(c=>notes+='<div class="note lose">わざ「'+c.name+'」が 使えなくなる</div>');}
     if(!same){const b0=bloodOf(P.eq),b1=bloodOf(neq);if(b1&&(!b0||b0.k!==b1.k||b0.tier!==b1.tier))notes+='<div class="note">'+BLOODS[b1.k].n+(b1.tier>1?'（濃い）':'')+'が めざめる：'+BLOODS[b1.k].d[b1.tier-1]+'</div>';else if(b0&&!b1)notes+='<div class="note lose">'+BLOODS[b0.k].n+'が 消える</div>';}
+    if(!same){const s0=stanceOf(P.eq),s1=stanceOf(neq);for(const b of ['bite','roll']){const u0=stanceUpOf(P.eq,s0),u1=stanceUpOf(neq,s1);
+        if(s1[b]&&u1[b]&&!(s0[b]===s1[b]&&u0[b])){const U=STANCE_UP[s1[b]];notes+='<div class="note waza-note"><b>かたの きわみ「'+U.lbl+'」！</b><br>'+U.how+'</div>';}
+        else if(s1[b]&&s1[b]!==s0[b]){const T=STANCES[s1[b]];notes+='<div class="note waza-note"><b>かた「'+T.lbl+'」：'+BTN_NAME[b]+'が かわる！</b><br>'+T.how+'</div>';}
+        else if(s1[b]&&s0[b]===s1[b]&&u0[b]&&!u1[b])notes+='<div class="note lose">かたの きわみ「'+STANCE_UP[s1[b]].lbl+'」が 消える</div>';
+        if(s1[b]&&!u1[b]&&s1[b]!==s0[b])notes+='<div class="note">あと '+SLOTNAME[STANCE_UP[s1[b]].need[0]]+'しだいで きわみ「'+((DEX.stanceUp||{})[s1[b]]?STANCE_UP[s1[b]].lbl:'？？？')+'」（'+STANCE_UP[s1[b]].hint+'）</div>';else if(s0[b]&&!s1[b])notes+='<div class="note lose">かた「'+STANCES[s0[b]].lbl+'」が 消えて '+BTN_NAME[b]+'に もどる</div>';}}
     $('pcNotes').innerHTML=notes;
     $('pcNow').innerHTML='いまの'+SLOTNAME[p.s]+'：'+partChip(cur)+(isDefault(cur.s,cur.id)?'':' （つけかえると すみかへ おくる）');
     paintDango($('pcCanvas'),same?P.eq:neq);
@@ -78,8 +84,11 @@ const UI={
     if(homeTab==='body'){
       const s=ST;
       h+='<div class="home-top"><canvas id="homeCanvas" width="192" height="192"></canvas><dl class="statgrid">'+
-        '<dt>Lv</dt><dd>'+P.lv+'</dd><dt>体力</dt><dd>'+Math.round(s.maxhp)+'</dd><dt>一撃</dt><dd>'+Math.round(s.dmg)+'</dd><dt>かむ間かく</dt><dd>'+s.cd.toFixed(2)+'秒</dd><dt>足</dt><dd>'+Math.round(s.speed)+'</dd><dt>突進</dt><dd>'+Math.round(s.dash)+'</dd><dt>うける ダメージ</dt><dd>'+Math.round(s.def*100)+'%</dd></dl></div>';
+        '<dt>Lv</dt><dd>'+P.lv+'</dd>'+statRows(s).map(([k,v])=>'<dt>'+k+'</dt><dd>'+v+'</dd>').join('')+'</dl></div>';
+      {const L=houseLv(),n=houseNext(),cm=S.store.filter(p=>p.rar===0&&p.st===1&&!p.tr.length).length;h+='<div class="entry house"><b>すみか：'+HOUSE[L].n+'（'+(L+1)+'/'+HOUSE.length+'）</b><small>'+houseEffectsText()+'</small>'+
+        (n?'<small>つぎ：'+n.n+' ― ふつうの部位 '+n.cost+'こ（いま '+cm+'）'+(n.dango?'・蜜だんご '+n.dango+'こ':'')+(S.cleared.length+S.cycle*7<L+1?'・番長を もっと たおすと 増築できる':'')+'</small><button type="button" class="mini gold" data-build="1"'+(houseCanBuild()?'':' disabled')+'>増築する</button>':'<small>これ以上 大きく できない。りっぱな 屋敷だ。</small>')+'</div>';}
       {const b=bloodOf(P.eq);h+=b?'<div class="entry blood"><b>'+BLOODS[b.k].n+(b.tier>1?'（濃い）':'')+'</b><small>同じ 系統の 部位 '+b.n+'つ ・ '+BLOODS[b.k].d[b.tier-1]+(b.tier<2?'（3つで もっと 濃くなる）':'')+'</small></div>':'<p class="small">同じ 系統の 部位を 2つ 以上 つけると「○○の血」が めざめる。</p>';}
+      {const so=ST.stance||{};for(const b of ['bite','roll'])if(so[b]){const T=STANCES[so[b]],up=(ST.stanceUp||{})[b],U=STANCE_UP[so[b]];h+='<div class="entry waza"><b>かた「'+(up?U.lbl:T.lbl)+'」（'+BTN_NAME[b]+'が かわる）'+(up?' ― きわみ':'')+'</b><small>'+(up?U.how:T.how+'<br>きわみ：'+SLOTNAME[U.need[0]]+'しだいで もっと 強くなる（'+U.hint+'）')+'</small></div>';}}
       const cs=activeCombos(eqIds(P.eq));h+=cs.length?cs.map(c=>'<div class="entry"><b>わざ「'+c.name+'」</b><small>'+UI.wazaHTML(c,true)+'</small></div>').join(''):'<div class="combos"><small>わざ なし ― 部位の 組み合わせで 生まれる</small></div>';
       for(const sl of SLOTS){const p=P.eq[sl],cand=S.store.filter(x=>x.s===sl);
         h+='<div class="entry slotrow'+(homeSlot===sl?' open':'')+'"><button type="button" class="slotbtn" data-slot="'+sl+'"><span class="tag">'+SLOTNAME[sl]+'</span> '+partChip(p)+' <small>'+qText(p)+'</small>'+traitsHTML(p)+'<em>'+(cand.length?'すみかに '+cand.length+'こ ▾':'')+'</em></button>';
@@ -152,6 +161,7 @@ const UI={
     else if(d.revive){if(reviveWithDango(+d.revive)){UI.banner(S.roster[+d.revive].name+'が 元気に なった','蜜だんごを 1こ つかった');spawnAllyIfChanged();}}
     else if(d.hang){const p=find(d.hang);if(p&&hangTrophy(p)){UI.banner('すみかに かざった',partName(p)+' ・ '+trophyText(p));checkAch();}}
     else if(d.unhang){if(!takeTrophy(+d.unhang))UI.banner('すみかが いっぱい','もちものに あきが ない');}
+    else if(d.build){if(houseBuild())UI.banner('すみかを 増築した！',HOUSE[houseLv()].n+' ・ スタミナ・もちもの・休養が よくなった');}
     else if(d.talk){kzTalk(+d.talk);return;}
     else if(d.pair){pairTalk(d.pair);return;}
     else if(d.dmake){if(makeDango())UI.banner('蜜だんごを つくった','もちもの の「つかう」で 甘い においを まとう');}
@@ -192,6 +202,8 @@ const UI={
     for(const b of ['roll','bite']){const ids=ST.combos.filter(id=>COMBO_HOW[id].btn===b),el=$(b+'Tag');
       el.hidden=!ids.length;el.textContent=ids.slice(0,2).map(id=>COMBO_HOW[id].tag).join('・')+(ids.length>2?' +'+(ids.length-2):'');}
   },
+  stanceLabels(){if(!HAS_DOM)return;const so=ST.stance||{};const bl=$('biteLbl'),rl=$('rollLbl');if(bl)bl.textContent=stanceLbl('bite')||'かむ';if(rl)rl.innerHTML=stanceLbl('roll')||'まる<br>まる';const up=ST.stanceUp||{};$('bBite').classList.toggle('kiwami',!!up.bite);$('bRoll').classList.toggle('kiwami',!!up.roll);
+    $('bBite').classList.toggle('stance',!!so.bite);$('bRoll').classList.toggle('stance',!!so.roll);},
   tagHit(btn){const el=$(btn+'Tag');if(!el||el.hidden)return;el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');},
   wazaQ:[],
   waza(c){UI.wazaQ.push(c);if($('wazaCard').hidden)UI.wazaNext();},
@@ -244,9 +256,9 @@ const UI={
       $('hpBar').classList.toggle('low',P.hp<ST.maxhp*0.3);
       $('xpBar').style.width=(P.lv>=MAX_LV?100:clamp(P.xp/xpNeed(P.lv)*100,0,100))+'%';
       UI.btnTags();
-      {const a2=ALLY2&&!ALLY2.dead?ALLY2:null;$('allyName2').hidden=$('allyBar2w').hidden=!a2;if(a2){const c=duoCompat();$('allyName2').textContent='2匹目 Lv'+a2.rec.lv+' '+a2.T.name+(c>=0?' ・ 相性'+COMPAT[c].m:'');$('allyBar2').style.width=clamp(a2.hp/a2.maxhp*100,0,100)+'%';}}
+      {const a2=ALLY2&&!ALLY2.dead?ALLY2:null;$('allyName2').hidden=$('allyBar2w').hidden=!a2;if(a2){const c=duoCompat();$('allyName2').textContent=a2.T.name.replace(/^.*番長 /,'')+' Lv'+a2.rec.lv+(c>=0?' ・ 相性'+COMPAT[c].m:'');$('allyBar2').style.width=clamp(a2.hp/a2.maxhp*100,0,100)+'%';}}
       $('allyBox').hidden=!al;$('bondBar').style.width=(al?S.bond||0:0)+'%';$('bondBar').classList.toggle('full',(S.bond||0)>=100);
-      if(al){const tier=skillTier(al.rec);$('allyName').textContent='子分 Lv'+al.rec.lv+' '+al.T.name+(tier?' ・ '+(tier===2?'真・':'')+ALLY_SKILLS[skillOf(al.type)].name:'');$('allyBar').style.width=clamp(al.hp/al.maxhp*100,0,100)+'%';}
+      if(al){const tier=skillTier(al.rec);$('allyName').textContent=al.T.name.replace(/^.*番長 /,'')+' Lv'+al.rec.lv;$('allyBar').style.width=clamp(al.hp/al.maxhp*100,0,100)+'%';}
       const ph=MAP.dojo?'':{day:'昼',dusk:'夕方',night:'夜',dawn:'明け方'}[skyPhase()];$('date').textContent=dateStr()+(ph?' '+ph:'')+(isRain()?' ☂':'');$('areaSmall').textContent=AREA().name+(S.cycle?'・'+(S.cycle+1)+'年目':'');
       const ob=objective();if(ob!==UI.objText){UI.objText=ob;UI.objT=0;$('obj').textContent=ob;}
     }
@@ -261,10 +273,11 @@ const UI={
     if(UI.mmT%30===0){const r=document.querySelector('.me').getBoundingClientRect();$('obj').style.top=Math.round(r.bottom+8)+'px';const sd=document.querySelector('.side').getBoundingClientRect(),ob=$('obj').getBoundingClientRect(),of=$('obj').classList.contains('fade')||$('obj').hidden;UI.topY=Math.round(Math.max(sd.bottom,of?0:ob.bottom,r.bottom)+8);}
   }
 };
-function cmpRows(){return [['一撃',s=>s.dmg,90],['かむ速さ',s=>1/s.cd,6],['範囲',s=>s.range*s.arc,140],['足',s=>s.speed,280],['突進',s=>s.dash,1200],['かたさ',s=>1/s.def,3.2]];}
+function cmpRows(){return [['一撃',s=>s.dmg,v=>Math.round(v)],['かむ速さ',s=>1/s.cd,v=>v.toFixed(1)+'/秒'],['はんい',s=>s.range*s.arc,v=>Math.round(v)],['会心',s=>s.crit,v=>Math.round(v*100)+'%'],['足',s=>s.speed,v=>Math.round(v)],['突進',s=>s.dash,v=>Math.round(v)],['突進威力',s=>s.dashDmg,v=>Math.round(v)],['かたさ',s=>1/s.def,v=>Math.round(100/v)+'%']];}
+/* bars are drawn relative to the bigger of the two values, so they never pin at a fixed maximum */
 function cmpHTML(a,b){
-  return cmpRows().map(([lbl,f,max])=>{const va=f(a),vb=f(b),diff=vb/va-1,cls=Math.abs(diff)<0.02?'':diff>0?'up':'down',txt=Math.abs(diff)<0.02?'＝':(diff>0?'▲':'▼')+Math.round(Math.abs(diff)*100)+'%';
-    return '<div class="cmp-row"><span>'+lbl+'</span><span class="cmp-bar"><i style="width:'+clamp(va/max*100,2,100)+'%"></i><b style="width:'+clamp(vb/max*100,2,100)+'%"></b></span><span class="'+cls+'">'+txt+'</span></div>';}).join('');
+  return cmpRows().map(([lbl,f,fmt])=>{const va=f(a),vb=f(b),mx=Math.max(va,vb)*1.15||1,diff=va?vb/va-1:0,cls=Math.abs(diff)<0.02?'':diff>0?'up':'down',txt=Math.abs(diff)<0.02?'＝':(diff>0?'▲':'▼')+Math.round(Math.abs(diff)*100)+'%';
+    return '<div class="cmp-row"><span>'+lbl+'</span><span class="cmp-bar"><i style="width:'+clamp(va/mx*100,2,100)+'%"></i><b style="width:'+clamp(vb/mx*100,2,100)+'%"></b></span><span class="'+cls+'">'+(Math.abs(diff)<0.02?fmt(va):fmt(va)+'→'+fmt(vb))+' '+txt+'</span></div>';}).join('');
 }
 function cmpBrief(a,b){const out=[];for(const [lbl,f] of cmpRows()){const d=f(b)/f(a)-1;if(Math.abs(d)>=0.03)out.push('<span class="'+(d>0?'up':'down')+'">'+lbl+(d>0?'▲':'▼')+Math.round(Math.abs(d)*100)+'%</span>');}return out.join(' ')||'かわらない';}
 function diaryHTML(){
@@ -287,6 +300,7 @@ function renderBook(){
     h+='<p class="small">部位の 組み合わせで 使える わざ。</p>';
     const on=ST.combos;
     h+=COMBOS.map(c=>{const known=DEX.combos[c.id]||on.includes(c.id);return '<div class="entry'+(known?'':' locked')+'"><b>'+(known?c.name:'？？？')+(on.includes(c.id)?'（はつどう中）':'')+'</b><small>'+UI.wazaHTML(c,known)+'</small></div>';}).join('');
+    h+='<p class="small">かた：部位の 組み合わせで「かむ」「まるまる」そのものが 別の わざに かわる。</p>'+Object.keys(STANCES).map(k=>{const T=STANCES[k],known=(DEX.stances||{})[k],on=ST.stance&&ST.stance[T.btn]===k;const U=STANCE_UP[k],uk=(DEX.stanceUp||{})[k];return '<div class="entry'+(known||on?'':' locked')+'"><b>'+(known||on?'「'+T.lbl+'」'+T.n:'？？？')+'（'+BTN_NAME[T.btn]+'）'+(on?'（いま この かた）':'')+'</b><small>'+(known||on?T.how:'ヒント：'+T.hint)+'</small>'+(known||on?'<small class="kiwami-row">きわみ：'+(uk?'「'+U.lbl+'」'+U.how:'？？？ ― ヒント：'+T.hint+' '+U.hint)+'</small>':'')+'</div>';}).join('');
     h+='<p class="small">とくせい：部位に ついている おまけ。</p>'+TRAIT_KEYS.map(k=>'<div class="entry"><b>'+TRAITS[k].name+'</b><small>'+TRAITS[k].desc+'</small></div>').join('');
   }else if(bookTab==='zukan'){
     const seen=DEX_ORDER.filter(t=>DEX.bugs[t]).length;

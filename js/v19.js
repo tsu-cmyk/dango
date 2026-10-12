@@ -28,7 +28,7 @@ function feudTick(){
   if(!a0||!a1||F.t>70){
     const win=a0?0:a1?1:-1;
     if(F.joined>=0&&win===F.joined){feudReward(F,win);}
-    else if(F.joined>=0&&win>=0&&win!==F.joined)banner('加勢した 側が まけた……','また どこかで 会うだろう');
+    else if(F.joined>=0&&win>=0&&win!==F.joined)toast('加勢した 側が まけた……','また どこかで 会うだろう');
     for(const e of F.members){if(e.dead)continue;if(e.friendly){e.peace=true;e.state='wander';e.feud=null;}else if(e.feud){e.feud=null;e.state='wander';}}
     S.feud=null;}
 }
@@ -103,7 +103,7 @@ function bloodOf(eq){const ids=SLOTS.map(s=>eq[s].id);let best=null,bn=1;for(con
 function applyBlood(st,eq){const b=bloodOf(eq);st.blood=b;if(!b)return;const t=b.tier;
   switch(b.k){case 'kouchu':st.dmg*=t>1?1.18:1.1;if(t>1)st.kb*=1.3;break;case 'hachi':st.crit+=t>1?0.15:0.08;break;case 'koukaku':st.def*=t>1?0.82:0.9;break;
     case 'mukade':st.speed*=t>1?1.14:1.08;if(t>1)st.poison+=3;break;case 'hane':st.dash*=t>1?1.2:1.12;if(t>1)st.dashDmg*=1.15;break;case 'ari':st.cd*=t>1?0.82:0.9;break;}}
-function bloodCheck(){const b=ST.blood,k=b?b.k+b.tier:'';if(k!==S.bloodKey){const was=S.bloodKey;S.bloodKey=k;if(b&&was!==undefined){banner(BLOODS[b.k].n+'が めざめた！'+(b.tier>1?'（濃い）':''),BLOODS[b.k].d[b.tier-1]);sfx('star');DEX.bloods=DEX.bloods||{};DEX.bloods[b.k]=true;saveDex();}}}
+function bloodCheck(){const b=ST.blood,k=b?b.k+b.tier:'';if(k!==S.bloodKey){const was=S.bloodKey;S.bloodKey=k;if(b&&was!==undefined){toast(BLOODS[b.k].n+'が めざめた！'+(b.tier>1?'（濃い）':''),BLOODS[b.k].d[b.tier-1]);sfx('star');DEX.bloods=DEX.bloods||{};DEX.bloods[b.k]=true;saveDex();}}}
 function bloodBody(ids){const eq=ids._eq;if(!eq)return null;const b=bloodOf(eq);return b?{col:mixHex(DANGO_BODY,BLOODS[b.k].col,b.tier>1?0.55:0.33),k:b.k,tier:b.tier}:null;}
 
 /* ---------------- すみかの飾り ---------------- */
@@ -121,7 +121,8 @@ function drawTrophies(){if(!MAP||!S.trophies||!S.trophies.length||MAP.dojo)retur
 
 /* ---------------- 夜の酒場: 力比べ and 相撲 at a sap pool near the leaf house ---------------- */
 function tavernSetup(){MAP.tavern=null;if(MAP.dojo)return;const s=MAP.sumika;for(let k=0;k<80;k++){const a=rnd(0,TAU),d=rnd(260,420),x=s.x+Math.cos(a)*d,y=s.y+Math.sin(a)*d;if(x<200||y<200||x>MAP.w-200||y>MAP.h-200||blocked(x,y,70)||inLair(x,y))continue;MAP.tavern={x,y,crowd:[0,1,2].map(()=>pick(AREA().mobs.map(m=>m[0]).filter(t=>TYPES[t].ai!=='burrow')))};return;}}
-function tavernOpen(){return !!MAP&&!!MAP.tavern&&isNight()&&!MAP.dojo;}
+/* the night tavern was retired (v21) */
+function tavernOpen(){return false;}
 function tavernTick(){
   if(!tavernOpen()||S.mg||S.talk||S.state!=='play'||S.bossBar)return;const T=MAP.tavern,d=Math.hypot(P.x-T.x,P.y-T.y);
   S.tavCd=(S.tavCd||0)-DT;if(d>110){if(d>200)S.tavAsked=false;return;}if(S.tavAsked||S.tavCd>0)return;S.tavAsked=true;
@@ -155,4 +156,4 @@ function drawMgScreen(){const m=S.mg;if(!m)return;
   ctx.fillStyle=INK;ctx.fillRect(bx-4,cy+30,bw+8,26);ctx.fillStyle='#c8452d';ctx.fillRect(bx,cy+34,bw/2*(1-Math.max(0,m.pos)),18);ctx.fillStyle='#f2b632';ctx.fillRect(bx+bw/2-bw/2*Math.max(0,-m.pos),cy+34,0,18);
   const k=(m.pos+1)/2;ctx.fillStyle='#d8cfb8';ctx.fillRect(bx,cy+34,bw,18);ctx.fillStyle='#f2b632';ctx.fillRect(bx,cy+34,bw*k,18);ctx.fillStyle='#c8452d';ctx.fillRect(bx+bw*k,cy+34,bw*(1-k),18);ctx.fillStyle=INK;ctx.fillRect(bx+bw/2-2,cy+30,4,26);
   ctx.font='900 13px '+FONT;ctx.fillStyle='#fff';ctx.fillText(m.t<0?'':m.res?'':'のこり '+Math.max(0,9-m.t).toFixed(1)+'秒 ・ '+m.taps+'回',W/2,cy+80);}
-ACHS.push({id:'feud3',name:'仁義の 番長',desc:'縄張り争いで 3回 加勢して 勝つ'},{id:'blood',name:'血が さわぐ',desc:'種族の血を めざめさせる'},{id:'trophy3',name:'自慢の すみか',desc:'すみかに 3つ かざる'},{id:'push5',name:'力じまん',desc:'夜の 酒場の 力比べに 5回 勝つ'});
+ACHS.push({id:'feud3',name:'仁義の 番長',desc:'縄張り争いで 3回 加勢して 勝つ'},{id:'blood',name:'血が さわぐ',desc:'種族の血を めざめさせる'},{id:'trophy3',name:'自慢の すみか',desc:'すみかに 3つ かざる'});

@@ -102,7 +102,7 @@ function justGuard(from,dmg){
   pop(P.x,P.y-44,'ジャスト！','#2f6fb0',true);qProgress('just',1);fx.push({ring:true,x:P.x,y:P.y,r:70,t:0,life:0.3});tot('just',1);
   if(from&&from.T&&!from.dead){damageEnemy(from,ST.dmg*1.6+dmg*0.3,P.x,P.y,320,0,{player:true,force:true});from.brokenT=Math.max(from.brokenT||0,2);
     if(!from.T.boss&&!from.T.keeper&&!from.T.nushi){from.state='recover';from.t=1.3;}else{from.state='recover';from.t=0.7;}}
-  addBond(8);return true;
+  P.st=Math.min(1,(P.st??1)+0.15);addBond(8);return true;
 }
 
 /* ---------------- れんげき (hit chain) ---------------- */

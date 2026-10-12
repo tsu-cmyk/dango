@@ -83,7 +83,7 @@ function checkNewCombos(before){
   for(const c of now){const first=!DEX.combos[c.id];DEX.combos[c.id]=true;saveDex();
     if(first){diary('わざ「'+c.name+'」を おぼえた。');S.stats.combos++;}
     if(first&&u&&HAS_DOM)u.waza(c);
-    else{const H=COMBO_HOW[c.id];banner('わざ「'+c.name+'」',(H.btn==='auto'?'じどう：':BTN_NAME[H.btn]+'で：')+H.how);sfx('combo');}}
+    else{const H=COMBO_HOW[c.id];toast('わざ「'+c.name+'」',(H.btn==='auto'?'じどう：':BTN_NAME[H.btn]+'で：')+H.how);sfx('combo');}}
 }
 /* visible feedback when a わざ fires: name pop + its button label flashes */
 function comboFx(id,x,y){
@@ -100,7 +100,7 @@ function equipPart(p){
   if(!DEX.parts[p.id]){DEX.parts[p.id]=true;saveDex();}
 }
 function unequip(slot){const old=P.eq[slot];if(isDefault(slot,old.id))return;if(storePart(old,true)){P.eq[slot]=defPart(slot);refreshStats();}}
-const STORE_MAX=40;
+let STORE_MAX=40;
 function storePart(p,quiet){if(S.store.length>=STORE_MAX){if(!quiet)pop(P.x,P.y-30,'すみかが いっぱい！',INK,true);dropItem(P.x,P.y+30,p);return false;}S.store.push(p);if(!quiet){sfx('store');pop(P.x,P.y-30,'すみかへ おくった',INK,true);}return true;}
 /* ★ synthesis: the BASE keeps its own rarity and quality; the material gives +1★ and passes on one trait it has that the base lacks */
 function mergePreview(base,mat){
@@ -140,7 +140,7 @@ function spawnEnemy(type,x,y,o){
 }
 /* next summers: early areas are brought up to late-game toughness */
 function cycBoost(k){return 1+cyEff()*(k||0.2)*(AREAS.length-1-S.areaI);}
-function mobType(){if(S.swarm&&!S.dojo&&Math.random()<0.55)return S.swarm;if(S.cycle>=1&&!S.dojo&&Math.random()<Math.min(0.5,0.28+0.08*(S.cycle-1))){const L=INV_MOBS[S.areaI]||INV_MOBS[0];return pick(L);}const A=AREA(),tot=A.mobs.reduce((s,m)=>s+m[1],0);let p=Math.random()*tot;for(const m of A.mobs){p-=m[1];if(p<=0)return m[0];}return A.mobs[0][0];}
+function mobType(){if(S.swarm&&!S.dojo&&Math.random()<0.55)return S.swarm;{const L=S.dojo?null:storyMobs(S.areaI);if(L&&Math.random()<Math.min(0.5,0.28+0.08*(S.cycle-1)))return pick(L);}const A=AREA(),tot=A.mobs.reduce((s,m)=>s+m[1],0);let p=Math.random()*tot;for(const m of A.mobs){p-=m[1];if(p<=0)return m[0];}return A.mobs[0][0];}
 function spawnMob(far){
   const M=MAP;
   for(let k=0;k<40;k++){
@@ -152,7 +152,7 @@ function spawnMob(far){
     const dp=Math.hypot(x-P.x,y-P.y);if(dp<(far?900:520))continue;
     if(Math.hypot(x-M.sumika.x,y-M.sumika.y)<260)continue;
     if(M.sumo&&Math.hypot(x-M.sumo.x,y-M.sumo.y)<M.sumo.R+80)continue;
-    const elite=T.ai!=='passive'&&T.ai!=='burrow'&&Math.random()<(0.05+0.05*S.cycle)*(isNight()?2:1);
+    const elite=T.ai!=='passive'&&T.ai!=='burrow'&&Math.random()<(0.05+0.05*S.cycle+((story()||{}).elite||0))*(isNight()?2:1);
     if(trySquad(x,y))return null;
     const e=spawnEnemy(t,x,y,{elite});
     /* small packs for ants and bees */
@@ -169,10 +169,10 @@ function loadArea(i,opts){
   S.cameo=null;S.cutin=null;S.rk=null;S.tbHere=null;S.tbDone=false;S.tbT=0;S.swarmKills=0;S.gusts=0;S.tbFlies=0;S.chain=0;S.chainT=0;S.duoCd=8;S.bg=null;S.wind=null;S.windTold=false;S.slowmo=0;S.flash=0;S.keepersDown=0;S.bossDown=false;S.exit=null;S.sumo=null;S.bossBar=null;S.sumikaLock=true;S.itemHold=null;S.seenSumo=false;
   const cleared=S.cleared.includes(i);S.challenge=!!opts.challenge;S.chalT=0;S.dojo=false;S.saved=null;
   MAP.lair.open=cleared||S.challenge;MAP.lair.openT=MAP.lair.open?1:0;
-  if(S.cycle>=1&&MAP.arenas[1]&&TYPES['inv_'+A.id])MAP.arenas[1].keeper='inv_'+A.id;
+  {const sk=MAP.arenas[1]&&storyKeeper(A,i);if(sk)MAP.arenas[1].keeper=sk;}
   for(const a of MAP.arenas){const e=spawnEnemy(a.keeper,a.x,a.y);e.arena=a;a.beaten=false;if(S.challenge)awaken(e);}
   const L=MAP.lair,bossT=TYPES[A.boss];
-  const b=spawnEnemy(A.boss,L.x,A.final?L.y-30:L.y);b.lair=true;b.inLair=true;if(S.challenge)awaken(b);
+  const b=spawnEnemy(storyFinal(A),L.x,A.final?L.y-30:L.y);b.lair=true;b.inLair=true;if(S.challenge)awaken(b);
   if(A.final){b.state='seat';b.ang=Math.PI/2;}
   if(!S.challenge&&placeSumo(MAP,opts.forceSumo?1:0.3)){const s=spawnEnemy('sumou',MAP.sumo.x,MAP.sumo.y,{lv:areaLv()+2});s.ang=Math.PI/2;}
   themeAreaSetup();ballSetup();digSetup();S.ballHint=false;S.digHint=false;S.net=null;S.netT=rnd(60,100);S.feud=null;S.pred=null;S.feudT=rnd(50,90);S.predT=rnd(50,80);S.mg=null;S.tavAsked=false;tavernSetup();
@@ -201,8 +201,8 @@ function allyGainXP(r,n){
   const st=allyStats(r);for(const A of [ALLY,ALLY2])if(A&&A.rec===r){const f=A.hp/A.maxhp;A.lv=st.lv;A.maxhp=st.maxhp;A.hp=st.maxhp*Math.max(f,0.5);A.dmg=st.dmg;A.baseDmg=st.dmg;pop(A.x,A.y-A.r-18,'子分 Lv'+r.lv+'！','#5f7d3a',true);}
   const after=skillTier(r);
   if(after>before){const sk=ALLY_SKILLS[skillOf(r.type)];sfx('combo');
-    if(after===1){banner(r.name+'が わざを おぼえた','「'+sk.name+'」 '+sk.desc);diary(r.name+'が「'+sk.name+'」を おぼえた。');DEX.allySkill=true;}
-    else{banner(r.name+'の わざが 真に なった','「真・'+sk.name+'」 もっと 強く、もっと 何度も');diary(r.name+'の わざが「真・'+sk.name+'」に なった。');DEX.allyMaster=true;}
+    if(after===1){toast(r.name+'が わざを おぼえた','「'+sk.name+'」 '+sk.desc);diary(r.name+'が「'+sk.name+'」を おぼえた。');DEX.allySkill=true;}
+    else{toast(r.name+'の わざが 真に なった','「真・'+sk.name+'」 もっと 強く、もっと 何度も');diary(r.name+'の わざが「真・'+sk.name+'」に なった。');DEX.allyMaster=true;}
     saveDex();}
 }
 function allyStats(r){const T=TYPES[r.type],lv=Math.max(r.lv,P.lv-6),iv=r.iv||{hp:1,dmg:1},kz=(r.kz||0)>=2?1.1:1;return {lv,maxhp:T.hp*(1+0.12*(lv-1))*(1+0.35*cyEff())*0.9*iv.hp*kz*(r.trait==='tafu'?1.3:1),dmg:Math.max(4,T.dmg)*(1+0.13*(lv-1))*(1+0.25*cyEff())*0.75*iv.dmg*kz};}
@@ -225,7 +225,7 @@ function recruit(e,keeper,pre){
   sfx('ally');diary(e.T.name+'が 子分に なった。');
   if(S.allyI<0||!ALLY){S.allyI=S.roster.length-1;spawnAlly();if(ALLY){ALLY.x=e.x;ALLY.y=e.y;}pop(e.x,e.y-e.r-24,'兄貴、ついていきます！','#5f7d3a',true);}
   else pop(e.x,e.y-e.r-24,'すみかで 待ってます！','#5f7d3a',true);
-  banner('子分が ふえた！',e.T.name+(ALLY&&ALLY.rec===r?' が ついてくる':' は すみかで 待っている（'+S.roster.length+'/'+ROSTER_MAX+'）'));
+  toast('子分が ふえた！',e.T.name+(ALLY&&ALLY.rec===r?' が ついてくる':' は すみかで 待っている（'+S.roster.length+'/'+ROSTER_MAX+'）'));
   return true;
 }
 function setActiveAlly(idx){if(idx===S.allyJ)S.allyJ=S.allyI;S.allyI=idx;if(S.state!=='title')spawnAlly();}
@@ -259,7 +259,7 @@ function damageEnemy(e,dmg,fx_,fy_,kb,poison,opts){
   if(e.T.ai==='burrow'&&e.state==='up'){e.state='dive';e.t=0.5;}
   if((e.T.boss||e.T.keeper||e.T.nushi)&&!e.T.dummy&&e.phase===1&&e.hp<e.maxhp*0.5&&e.hp>0){e.phase=2;e.speed*=1.22;sfx('phase');sfx('cutin');S.cutin={e,t:0,text:RAGE[e.type]||'まだまだぁ！'};vib(70);e.cd=0.3;S.shake=10;
     for(let i=0;i<20;i++){const an=i/20*TAU;fx.push({x:e.x,y:e.y,vx:Math.cos(an)*260,vy:Math.sin(an)*260,t:0,life:0.5,c:'#c8452d'});}}
-  if(opts.player&&ALLY&&!ALLY.dead)addBond(1.5);
+  if(opts.player&&ALLY&&!ALLY.dead)addBond(1.2);
   if(opts.player&&ST.vamp)healPlayer(dmg*ST.vamp);
   if(opts.player&&ST.heal)healPlayer(dmg*ST.heal);
   if(e.T.dummy){e.hp=e.maxhp;S.dpsLog=S.dpsLog||[];S.dpsLog.push([S.t,dmg]);return dmg;}
@@ -308,7 +308,7 @@ function killEnemy(e){
   if(e.T.boss){
     S.bossDown=true;S.stats.bosses++;
     if(S.challenge){challengeWin(e);return;}
-    if(e.T.final){claimFinalPrize();S.state='finale';music.play(null);diary('カブトの若頭に 勝った。');later(()=>startEnding(),1600);return;}
+    if(e.T.final){claimFinalPrize();S.state='finale';music.play(null);diary(finalName()+'に 勝った。');later(()=>startEnding(),1600);return;}
     music.play('victory');
     diary(e.T.name.replace(/^.*?番長 ?/,'')+'に かった。'+AREA().name+'の 番長だ。');
     later(()=>{if(S.state==='play')say(AREA().bossDown,()=>openExit());},700);
@@ -365,8 +365,10 @@ function playerDef(from){
 function hurtPlayer(dmg,from,opts){
   opts=opts||{};
   if(P.inv>0||S.state!=='play'||S.sumo)return false;
-  if(P.rolled&&!opts.unblockable){
+  if(P.rolled&&!opts.unblockable&&moveIsDodge(from)&&!S.dodgeHint){S.dodgeHint=true;pop(P.x,P.y-44,'紫の わざは まるまっても ふせげない！','#8a4ab0',true);}
+  if(P.rolled&&!opts.unblockable&&!moveIsDodge(from)){
     if(justGuard(from,dmg))return false;
+    if(stamBlock(from))return hurtPlayer(dmg*0.5,from,Object.assign({},opts,{unblockable:true}));
     if(from&&from.T&&(from.T.boss||from.T.keeper||from.T.nushi)&&from.lastMove&&from.lastMove!=='bite'&&from.phase===2)tot('blocks',1);
     sfx('clink');pop(P.x,P.y-18,'カキン',INK);
     if(ST.combos.includes('koukaku')&&from&&from.T){damageEnemy(from,dmg*0.8+ST.dmg*0.5,P.x,P.y,300,0,{force:true});pop(P.x,P.y-36,'はじき返し！','#c8452d',true);comboFx('koukaku',P.x,P.y-20);}
@@ -401,7 +403,7 @@ function hurtAlly(a,dmg,from){
   if(a.guardT>0)dmg*=0.5;
   a.hp-=dmg;a.inv=0.4;a.hurtT=0.3;pop(a.x,a.y-a.r,String(Math.round(dmg)),'#5f7d3a');
   if(from&&from.x!=null){const an=Math.atan2(a.y-from.y,a.x-from.x);a.vx+=Math.cos(an)*240;a.vy+=Math.sin(an)*240;}
-  if(a.hp<=0){a.dead=true;allyFaint(a.rec);corpses.push({e:a,t:0,ally:true});pop(a.x,a.y-a.r-12,'兄貴…すまねえ…',INK,true);sfx('down');diary(a.T.name+'が たおれて、すみかへ もどった。');banner(a.rec.name+'が たおれた','すみかで 休養する。元気に なったら もどってくる');a.rec.autoBack=true;partyDrop(a.rec);}
+  if(a.hp<=0){a.dead=true;allyFaint(a.rec);corpses.push({e:a,t:0,ally:true});pop(a.x,a.y-a.r-12,'兄貴…すまねえ…',INK,true);sfx('down');diary(a.T.name+'が たおれて、すみかへ もどった。');toast(a.rec.name+'が たおれた','すみかで 休養する。元気に なったら もどってくる');a.rec.autoBack=true;partyDrop(a.rec);}
   return true;
 }
 function enemyDmg(e,mul){const bd=(e.T.boss||e.T.keeper||e.T.nushi)&&S.bossDeaths?Math.min(5,S.bossDeaths[e.type]||0):0;return e.dmg*(mul||1)*clamp(1+0.08*(e.lv-P.lv),0.6,2.0)*(1-0.07*bd);}
@@ -479,9 +481,11 @@ function updatePlayer(){
     P.z=0;
   }
   const mx=P.stunT>0?0:inp.x,my=P.stunT>0?0:inp.y,ml=Math.hypot(mx,my);
-  if(inp.roll&&!P.rolled&&P.dashT<=0&&P.stunT<=0){P.rolled=true;P.rollAt=S.t;sfx('roll');if(st.combos.includes('akushu')){emitStink(140,2.6);comboFx('akushu',P.x,P.y);}}
+  if(inp.roll&&!P.rolled&&P.dashT<=0&&P.stunT<=0&&!P.tired){P.rolled=true;P.rollAt=S.t;sfx('roll');if(st.combos.includes('akushu')){emitStink(140,2.6);comboFx('akushu',P.x,P.y);}}
+  if(P.rolled&&!inp.roll&&moguruOn()){P.rolled=false;moguruPop();}
+  if(P.rolled&&!inp.roll&&ST.stance&&ST.stance.roll==='tobu'){P.rolled=false;tobuJump(ml>0.2?Math.atan2(my,mx):P.ang);}
   if(P.rolled&&!inp.roll){P.rolled=false;P.dashT=0.34;P.dashHit=new Set();const a=ml>0.2?Math.atan2(my,mx):P.ang;P.ang=a;P.vx=Math.cos(a)*st.dash*themeDashMul();P.vy=Math.sin(a)*st.dash*themeDashMul();sfx('dash');if(st.combos.includes('suimen'))comboFx('suimen',P.x,P.y);if(st.glide)P.glideT=0.5;}
-  let sp=st.speed*(P.rolled?0.35:1)*(P.slowT>0?0.5:1);
+  let sp=st.speed*(P.rolled?rollSpeedMul():1)*(P.slowT>0?0.5:1);
   const web=MAP.webs.find(w=>!w.cut&&!w.regrow&&Math.hypot(w.x-P.x,w.y-P.y)<w.r);if(web&&P.dashT<=0){sp*=0.35;if(Math.random()<DT*2)pop(P.x,P.y-24,'ねばねば',INK);}
   if(P.dashT>0){P.ball+=0.5;if(st.combos.includes('ootobi'))P.z=Math.sin((1-P.dashT/0.34)*Math.PI)*26;
     if(st.combos.includes('suimen')&&Math.random()<0.6)waves.push({x:P.x,y:P.y,t:0,life:0.6});}
@@ -551,7 +555,7 @@ function spawnAllyIfChanged(){const r=S.roster[S.allyI],r2=S.roster[S.allyJ];if(
 function meetBoss(e){
   if(e.met)return;e.met=true;
   let lines;
-  if(e.T.final)lines=S.cycle>0&&AREA().bossMeetNG?AREA().bossMeetNG:AREA().bossMeet;
+  if(e.T.final){const st=story();lines=st&&st.final?st.final.meet.map(t=>({who:e.T.name,text:t})):S.cycle>0&&AREA().bossMeetNG?AREA().bossMeetNG:AREA().bossMeet;}
   else if(e.T.keeper)lines=[{who:e.T.name,text:e.T.meet}];
   else lines=AREA().bossMeet;
   S.bossBar=e;music.play(e.T.final?'final':e.T.keeper?'keeper':'boss');
@@ -598,7 +602,7 @@ function updateEnemy(e){
         if(T.ai==='water'&&MAP.river){const x=clamp(e.home.x+rnd(-260,260),60,MAP.w-60);e.tx=x;e.ty=MAP.river.yAt(x)+rnd(-40,40);}
         else{const a=rnd(0,TAU),r=rnd(30,160);e.tx=clamp(e.home.x+Math.cos(a)*r,40,MAP.w-40);e.ty=clamp(e.home.y+Math.sin(a)*r,40,MAP.h-40);}}
       {const ddx=e.tx-e.x,ddy=e.ty-e.y,dd=Math.hypot(ddx,ddy);if(dd>8){tvx=ddx/dd*spd*0.42;tvy=ddy/dd*spd*0.42;}}
-      if(pd<T.aggro*(isRain()?(T.ai==='flyer'?0.35:0.7):1)&&P.inv<1&&!S.sumo&&!S.dojo&&!e.peace&&!e.friendly){
+      if(pd<T.aggro*(isRain()?(T.ai==='flyer'?0.35:0.7):1)&&P.inv<1&&!S.sumo&&!S.dojo&&!e.peace&&!e.friendly&&!(T.nushi&&bigFightOther(e))){
         if(T.ai==='passive'){if(pd<130){e.state='flee';e.fleeT=2;}}
         else if(scared){e.state='flee';e.fleeT=2;if(Math.random()<0.4)pop(e.x,e.y-e.r-8,pick(['ひえっ','あ、兄貴…','どうぞ どうぞ','かんべんして','おつかれさまです！']),INK);}
         else{e.state='chase';if(T.nushi&&!e.met){e.met=true;S.bossBar=e;music.play('nushi');sfx('roar');banner(T.tboss?TB_DEF[theme()].title:'ぬし だ！',T.name);vib(80);}
@@ -610,6 +614,8 @@ function updateEnemy(e){
       if(pd>T.aggro*1.5&&e.fleeT<=0){e.state='wander';e.home={x:e.x,y:e.y};}
       tvx=-(P.x-e.x)/pd*spd*1.05;tvy=-(P.y-e.y)/pd*spd*1.05;break;
     case 'chase':{
+      if(T.nushi&&bigFightOther(e)){e.state='wander';e.met=false;e.home={x:e.x,y:e.y};break;}
+      if(T.nushi&&!e.met){e.met=true;S.bossBar=e;music.play('nushi');sfx('roar');banner(T.tboss?TB_DEF[theme()].title:'ぬし だ！',T.name);vib(80);}
       if(T.nushi&&pd>T.aggro*2.6){e.state='wander';e.home={x:e.x,y:e.y};if(S.bossBar===e){S.bossBar=null;music.play(AREA().bgm);}e.met=false;break;}
       if(!T.boss&&!T.keeper&&!T.nushi&&pd>T.aggro*1.9&&(!ALLY||Math.hypot(ALLY.x-e.x,ALLY.y-e.y)>T.aggro*1.9)){e.state='wander';e.home={x:e.x,y:e.y};break;}
       if(scared){e.state='flee';e.fleeT=2;break;}
@@ -738,7 +744,7 @@ function updateAlly(a){
     const dx=tg.x-a.x,dy=tg.y-a.y,d=Math.hypot(dx,dy)||1;a.ang+=angDiff(a.ang,Math.atan2(dy,dx))*Math.min(1,DT*8);
     const ranged=a.T.ai==='ranged';
     if(ranged){if(d<220&&a.cd<=0){a.cd=1.3;shots.push({x:a.x,y:a.y,vx:dx/d*320,vy:dy/d*320,t:0,friendly:true,dmg:a.dmg,kind:a.T.shot||'web'});sfx('web');}if(d>200){tvx=dx/d*sp;tvy=dy/d*sp;}}
-    else if(d<a.r+tg.r+16){if(a.cd<=0){a.cd=0.85;a.slashT=0.15;a.ext=1;damageEnemy(tg,a.dmg*rnd(0.9,1.1),a.x,a.y,200);addBond(2.5);}}
+    else if(d<a.r+tg.r+16){if(a.cd<=0){a.cd=0.85;a.slashT=0.15;a.ext=1;damageEnemy(tg,a.dmg*rnd(0.9,1.1),a.x,a.y,200);addBond(1.8);}}
     else{tvx=dx/d*sp;tvy=dy/d*sp;if(a.T.ai==='hopper'&&Math.random()<DT*2){a.vx+=dx/d*300;a.vy+=dy/d*300;a.hop=1;}}
   }else{
     const back=ord==='def'?P.ang+0.9*(a.side||1):P.ang+Math.PI*0.8*(a.side||1),bdist=ord==='def'?42:ord==='reg'?64:46;gx=P.x+Math.cos(back)*bdist;gy=P.y+Math.sin(back)*bdist;
@@ -791,9 +797,9 @@ function updateSky(){
   if(typeof amb!=='undefined')amb.set(S.dojo?null:isNight()?'night':isRain()?'rain':null);
   if(isRain()){S.thunderT=(S.thunderT??rnd(4,9))-DT;if(S.thunderT<=0){S.thunderT=rnd(9,20);S.flash=0.45;later(()=>sfx('thunder'),rnd(150,700));}}
   if(S.dojo)return;const ph=skyPhase();
-  if(ph!==S.lastPhase){const prev=S.lastPhase;S.lastPhase=ph;if(prev){if(ph==='night'&&!AREA().dark){banner('夜に なった','めずらしい虫が 出はじめる。部位も 少し よくなる');sfx('whistle');diary('夜になった。');}else if(ph==='dawn'&&!AREA().dark)banner('夜が あけてきた','');}}
-  if(S.rainT>0){S.rainT-=DT;if(S.rainT<=0){banner('夕立が やんだ','葉っぱの しずくが きらきら 光る');if(typeof rain!=='undefined')rain.stop();}}
-  else if(!AREA().dark&&ph==='day'){S.rainCheck=(S.rainCheck||0)-DT;if(S.rainCheck<=0){S.rainCheck=40;if(Math.random()<themeRainCh()){S.rainT=theme()==='ooame'?rnd(70,110):rnd(40,60);banner('夕立だ！','飛ぶ虫は かくれ、めずらしい部位が 出やすい');diary('夕立が ふった。');if(typeof rain!=='undefined')rain.start();}}}
+  if(ph!==S.lastPhase){const prev=S.lastPhase;S.lastPhase=ph;if(prev){if(ph==='night'&&!AREA().dark){toast('夜に なった','めずらしい虫が 出はじめる。部位も 少し よくなる');sfx('whistle');diary('夜になった。');}else if(ph==='dawn'&&!AREA().dark)toast('夜が あけてきた','');}}
+  if(S.rainT>0){S.rainT-=DT;if(S.rainT<=0){toast('夕立が やんだ','葉っぱの しずくが きらきら 光る');if(typeof rain!=='undefined')rain.stop();}}
+  else if(!AREA().dark&&ph==='day'){S.rainCheck=(S.rainCheck||0)-DT;if(S.rainCheck<=0){S.rainCheck=40;if(Math.random()<themeRainCh()){S.rainT=theme()==='ooame'?rnd(70,110):rnd(40,60);toast('夕立だ！','飛ぶ虫は かくれ、めずらしい部位が 出やすい');diary('夕立が ふった。');if(typeof rain!=='undefined')rain.start();}}}
 }
 function fmtTime(t){const m=Math.floor(t/60),s=Math.floor(t%60);return m+'分'+(s<10?'0':'')+s+'秒';}
 /* ---------------- challenge letters ---------------- */
@@ -850,7 +856,7 @@ function pickMove(e,MS,d,reach){
   if(!c.length)return null;let r=Math.random()*tot;for(const [m,w] of c){r-=w;if(r<=0)return m;}return c[0][0];
 }
 function startMove(e,m,tgt,dx,dy,d,cdm){
-  const T=e.T,MS=MOVESETS[e.type]||{};e.lastMove=m;
+  const T=e.T,MS=MOVESETS[e.type]||{};e.lastMove=m;markMove(e,m);
   const nm=(MS.names&&MS.names[m])||(MOVE_DEF[m]&&MOVE_DEF[m].name);
   if(nm&&m!=='bite'&&(e.phase===2||Math.random()<0.6))pop(e.x,e.y-e.r-34,nm+'！','#c8452d',true);
   switch(m){
@@ -989,7 +995,7 @@ function rkTick(){
       break;}
     case 'tobi':{ /* the follower vaults off the curled boss and comes down like a meteor, then bounces on */
       if(t<0.3){rkMoveA(a,ox-dx*20,oy-dy*20);a.ang=rk.ang;P.ball+=0.6;}
-      else{if(at(0.3)){sfx('hop');S.shake=6;rk.bx=ox;rk.by=oy;rk.b=0;rk.bt=0;rk.L=[rk.info.len,130,90];}
+      else{if(at(0.3)){sfx('hop');S.shake=6;rk.bx=ox;rk.by=oy;rk.b=0;rk.bt=0;rk.L=[rk.tobiLen||rk.info.len,130,90];}
         rk.bt+=DT;const L=rk.L[rk.b],dur=rk.b===0?0.55:0.3,k=Math.min(1,rk.bt/dur);rkMoveA(a,rk.bx+dx*L*k,rk.by+dy*L*k);a.z=Math.sin(k*Math.PI)*(rk.b===0?110:40);fx.push({x:a.x,y:a.y-a.z,vx:0,vy:0,t:0,life:0.3,c:'#f2b632'});
         if(k>=1){a.z=0;rkBoom(a.x,a.y,rk.b===0?140:90,rk.b===0?2.6:1.2,rk.b===0?600:360);rk.b++;rk.bt=0;rk.bx=a.x;rk.by=a.y;if(rk.b>=3)rkEnd();}}
       break;}
@@ -1017,7 +1023,7 @@ function updateCameo(){
 /* ---------------- sumo (rare) ---------------- */
 function updateSumoFoe(e){
   const R=MAP.sumo;if(!R)return;
-  if(Math.hypot(P.x-R.x,P.y-R.y)<R.R+500&&!S.seenSumo){S.seenSumo=true;banner('土俵だ！','めったに 会えない 相撲好きが いる');}
+  if(Math.hypot(P.x-R.x,P.y-R.y)<R.R+500&&!S.seenSumo){S.seenSumo=true;toast('土俵だ！','めったに 会えない 相撲好きが いる');}
   if(!S.sumo){
     e.x+=(R.x-e.x)*0.05;e.y+=(R.y-e.y)*0.05;e.vx=e.vy=0;e.ang+=angDiff(e.ang,Math.atan2(P.y-e.y,P.x-e.x))*0.05;
     const pin=Math.hypot(P.x-R.x,P.y-R.y)<R.R-10;
@@ -1064,7 +1070,9 @@ function updateShots(){
     if(s.friendly){for(const e of E){if(e.dead||e.z>18||e.state==='den'||e.T.ai==='sumo')continue;if(Math.hypot(s.x-e.x,s.y-e.y)<e.r+6){damageEnemy(e,s.dmg,s.x,s.y,120);s.dead=true;break;}}}
     else{
       if(Math.hypot(s.x-P.x,s.y-P.y)<ST.r+6){s.dead=true;
-        if(P.rolled){sfx('clink');pop(P.x,P.y-18,'ぷちっ',INK);}
+        if(moguruOn()){s.dead=false;}
+        else if(P.rolled&&ST.stance&&ST.stance.roll==='komoru'){s.dead=false;s.friendly=true;s.vx=-s.vx*1.2;s.vy=-s.vy*1.2;s.t=0;s.dmg=ST.dmg*(ST.stanceUp&&ST.stanceUp.roll?1.3:0.8);sfx('clink');pop(P.x,P.y-18,'はね返し！','#c8452d');P.st=Math.max(0,(P.st??1)-0.03);}
+        else if(P.rolled){sfx('clink');pop(P.x,P.y-18,'ぷちっ',INK);P.st=Math.max(0,(P.st??1)-0.04);P.stIdle=0;}
         else{const k=s.kind;hurtPlayer(enemyDmg(s.from,s.mul||(k==='sting'?0.9:k==='honey'?0.45:0.6)),null,{slow:k==='web'?2:k==='honey'?1.5:0,poison:k==='sting'?4:0,src:k});if(k==='web')pop(P.x,P.y-34,'ねばねば…',INK);if(k==='honey'){clouds.push({x:P.x,y:P.y,r:50,t:0,life:4,kind:'honey'});}}}
       else{for(const A of allies())if(Math.hypot(s.x-A.x,s.y-A.y)<A.r+6){s.dead=true;hurtAlly(A,enemyDmg(s.from,0.5),null);break;}}
     }
@@ -1142,7 +1150,8 @@ function checkAch(){
   DEX.ach=DEX.ach||{};const t=DEX.tot||{},kills=Object.keys(DEX.bugs).reduce((s,k)=>s+(k==='sumou'?0:DEX.bugs[k]),0),nushi=Object.keys(DEX.nushi||{}).length,combos=Object.keys(DEX.combos).length;
   const parts=[P.eq.head,P.eq.legs,P.eq.tail,P.eq.back,...S.store];
   const invN=Object.keys(DEX.bugs).filter(k=>k.startsWith('inv_')).length;
-  const cond={feud3:(t.feuds||0)>=3,blood:Object.keys(DEX.bloods||{}).length>=1,trophy3:(S.trophies||[]).length>=3,push5:(t.pushWins||0)>=5,quest10:(t.quests||0)>=10,net3:(t.netDodge||0)>=3,dig5:(t.digs||0)>=5,squad5:(t.squads||0)>=5,ball30:(t.ballHits||0)>=30,duo1:!!DEX.duoWalked,gattai:!!DEX.gattai,just10:(t.just||0)>=10,chain50:(t.chain||0)>=50,tboss1:Object.keys(DEX.tboss||{}).length>=1,dango:(t.dango||0)>=1,pair3:Object.keys(DEX.pairs||{}).length>=3,themes:Object.keys(DEX.themes||{}).length>=3,kizuna3:(DEX.kizuna||0)>=3,gimmick:(t.gimmick||0)>=10,invader:invN>=3,invader7:invN>=7,pitari:(t.pitari||0)>=10,first:kills>=1,k100:kills>=100,k500:kills>=500,k1500:kills>=1500,keeper:Object.keys(DEX.bugs).some(k=>TYPES[k]&&TYPES[k].keeper),boss1:!!DEX.bugs.osa,boss4:S.cleared.length>=4,
+  const sc=DEX.storyClear||{};
+  const cond={st_hiari:!!sc.hiari,st_hachi:!!sc.hachi,st_kuwa:!!sc.kuwa,st_kama:!!sc.kama,st_kabuto:!!sc.kabuto,story3:Object.keys(DEX.stories||{}).length>=3,feud3:(t.feuds||0)>=3,blood:Object.keys(DEX.bloods||{}).length>=1,trophy3:(S.trophies||[]).length>=3,push5:(t.pushWins||0)>=5,quest10:(t.quests||0)>=10,net3:(t.netDodge||0)>=3,dig5:(t.digs||0)>=5,squad5:(t.squads||0)>=5,ball30:(t.ballHits||0)>=30,duo1:!!DEX.duoWalked,gattai:!!DEX.gattai,just10:(t.just||0)>=10,chain50:(t.chain||0)>=50,tboss1:Object.keys(DEX.tboss||{}).length>=1,dango:(t.dango||0)>=1,pair3:Object.keys(DEX.pairs||{}).length>=3,themes:Object.keys(DEX.themes||{}).length>=3,kizuna3:(DEX.kizuna||0)>=3,gimmick:(t.gimmick||0)>=10,invader:invN>=3,invader7:invN>=7,pitari:(t.pitari||0)>=10,mikiri10:(t.mikiri||0)>=10,stance3:Object.keys(DEX.stances||{}).length>=3,kiwami:Object.keys(DEX.stanceUp||{}).length>=1,stance7:Object.keys(DEX.stances||{}).length>=7,backpop:(t.backPop||0)>=10,storyev6:(t.storyEv||0)>=6,first:kills>=1,k100:kills>=100,k500:kills>=500,k1500:kills>=1500,keeper:Object.keys(DEX.bugs).some(k=>TYPES[k]&&TYPES[k].keeper),boss1:!!DEX.bugs.osa,boss4:S.cleared.length>=4,
     ending:DEX.clears>=1,ng:S.cycle>=1,ng2:!!DEX.ngClear,fast:!!DEX.best&&DEX.best<=12,nodeath:!!DEX.nodeath,crit:(t.crits||0)>=100,heavy:(t.maxHit||0)>=300,
     combo1:combos>=1,combo6:combos>=6,comboAll:combos>=COMBOS.length,legend:!!DEX.legend,lucky:Object.keys(DEX.rare||{}).length>0,star5:parts.some(p=>p.st>=5),parts:allPartsCount()>=20,
     ally:!!DEX.allyEver,skill:!!DEX.allySkill,master:!!DEX.allyMaster,allyLv:S.roster.some(r=>r.lv>=30),sumo1:(t.sumo||0)>=1,sumo3:(t.sumo||0)>=3,
@@ -1170,7 +1179,8 @@ function step(){
     S.time+=DT;S.playT+=DT;S.sumoCool-=DT;S.autosave+=DT;if(S.autosave>45){S.autosave=0;writeSave();}
     refreshStats();
     if(S.rk){P.inv=Math.max(P.inv,0.3);rkTick();}else{updatePlayer();if(S.state!=='play'){tickFx();return;}}
-    windTick();bgTick();tickBond();themeTick();dangoTick();duoTick();chainTick();rosterTick();ballTick();netTick();digTick();qEnsure();feudTick();predTick();tavernTick();bloodCheck();
+    stamTick();
+    windTick();bgTick();tickBond();themeTick();dangoTick();duoTick();chainTick();rosterTick();ballTick();netTick();digTick();qEnsure();feudTick();predTick();tavernTick();bloodCheck();mikiriTick();thrownTick();stanceCheck();v23Tick();threadTick();tobuTick();
     for(const e of E)if(!e.dead)updateEnemy(e);
     if(ALLY&&!ALLY.dead&&!S.rk)updateAlly(ALLY);
     if(ALLY2&&!ALLY2.dead&&!S.rk)updateAlly(ALLY2);
@@ -1186,7 +1196,7 @@ function step(){
     S.achT=(S.achT||0)+DT;if(S.achT>1){S.achT=0;checkAch();}
     updateSky();if(S.challenge&&!S.bossDown)S.chalT+=DT;
     if(S.dojo){S.bond=Math.min(100,(S.bond||0)+(ALLY&&!ALLY.dead?DT*8:0));}
-    if(S.exit){S.exit.t+=DT;if(S.exit.t>1.2&&Math.hypot(P.x-S.exit.x,P.y-S.exit.y)<40){S.exit=null;showClear();}}
+    if(S.exit){S.exit.t+=DT;const de=Math.hypot(P.x-S.exit.x,P.y-S.exit.y);if(de>80)S.exit.inside=false;if(S.exit.t>1.2&&de<40&&!S.exit.inside){S.exit.inside=true;showClear();}}
   }else inp.bite=false;
   tickFx();
 }
@@ -1207,17 +1217,17 @@ function tickFx(frozen){
 }
 
 /* ---------------- flow ---------------- */
-function snapSave(){return {v:1,areaI:S.areaI,cycle:S.cycle,time:S.time,playT:S.playT,lv:P.lv,xp:P.xp,eq:P.eq,store:S.store,roster:S.roster,allyI:S.allyI,allyJ:S.allyJ??-1,cleared:S.cleared,unlocked:S.unlocked,diary:S.diary,stats:S.stats,uid:S.uid,firstClear:S.firstClear,keeperWins:S.keeperWins||{},nushiMiss:S.nushiMiss||{},theme:S.theme||null,dango:S.dango||0,dangoT:S.dangoT||0,pairDone:S.pairDone||{},order:S.order||'atk',quests:S.quests||null,trophies:S.trophies||[],tavDone:S.tavDone||{},qDay:S.qDay||0,qArea:S.qArea??-1};}
+function snapSave(){return {v:1,areaI:S.areaI,cycle:S.cycle,time:S.time,playT:S.playT,lv:P.lv,xp:P.xp,eq:P.eq,store:S.store,roster:S.roster,allyI:S.allyI,allyJ:S.allyJ??-1,story:S.story||null,house:S.house||0,cleared:S.cleared,unlocked:S.unlocked,diary:S.diary,stats:S.stats,uid:S.uid,firstClear:S.firstClear,keeperWins:S.keeperWins||{},nushiMiss:S.nushiMiss||{},theme:S.theme||null,dango:S.dango||0,dangoT:S.dangoT||0,pairDone:S.pairDone||{},order:S.order||'atk',quests:S.quests||null,trophies:S.trophies||[],tavDone:S.tavDone||{},qDay:S.qDay||0,qArea:S.qArea??-1};}
 function writeSave(){if(!P||S.state==='title')return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(snapSave()));}catch(e){}}
 function readSave(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s&&s.v===1&&s.eq)return s;}catch(e){}return null;}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
 function applySave(s){
   P=newPlayer();P.lv=s.lv;P.xp=s.xp;P.eq=s.eq;for(const sl of SLOTS){if(!P.eq[sl])P.eq[sl]=defPart(sl);P.eq[sl].tr=P.eq[sl].tr||[];}
-  Object.assign(S,{areaI:s.areaI,cycle:s.cycle||0,time:s.time||0,playT:s.playT||0,store:s.store||[],roster:s.roster||[],allyI:s.allyI??-1,allyJ:s.allyJ??-1,cleared:s.cleared||[],unlocked:s.unlocked||0,diary:s.diary||{},stats:Object.assign(S.stats,s.stats||{}),uid:s.uid||1000,firstClear:s.firstClear||{},keeperWins:s.keeperWins||{},nushiMiss:s.nushiMiss||{},theme:s.theme||((s.cycle||0)>=2?'taifu':null),dango:s.dango||0,dangoT:s.dangoT||0,pairDone:s.pairDone||{},order:s.order||'atk',quests:s.quests||null,trophies:s.trophies||[],tavDone:s.tavDone||{},qDay:s.qDay||0,qArea:s.qArea??-1});
+  Object.assign(S,{areaI:s.areaI,cycle:s.cycle||0,time:s.time||0,playT:s.playT||0,store:s.store||[],roster:s.roster||[],allyI:s.allyI??-1,allyJ:s.allyJ??-1,house:s.house||0,story:s.story||((s.cycle||0)>=1?'hiari':null),cleared:s.cleared||[],unlocked:s.unlocked||0,diary:s.diary||{},stats:Object.assign(S.stats,s.stats||{}),uid:s.uid||1000,firstClear:s.firstClear||{},keeperWins:s.keeperWins||{},nushiMiss:s.nushiMiss||{},theme:s.theme||((s.cycle||0)>=2?'taifu':null),dango:s.dango||0,dangoT:s.dangoT||0,pairDone:s.pairDone||{},order:s.order||'atk',quests:s.quests||null,trophies:s.trophies||[],tavDone:s.tavDone||{},qDay:s.qDay||0,qArea:s.qArea??-1});
   ensureAllyRolls();refreshStats();
 }
 function resetRun(){
-  P=newPlayer();Object.assign(S,{theme:null,dango:0,dangoT:0,pairDone:{},time:0,playT:0,cycle:0,store:[],roster:[],allyI:-1,allyJ:-1,cleared:[],unlocked:0,diary:{},uid:1,firstClear:{},keeperWins:{},
+  P=newPlayer();Object.assign(S,{house:0,theme:null,dango:0,dangoT:0,pairDone:{},time:0,playT:0,cycle:0,store:[],roster:[],allyI:-1,allyJ:-1,cleared:[],unlocked:0,diary:{},uid:1,firstClear:{},keeperWins:{},
     stats:{kills:0,bosses:0,sumo:0,crits:0,maxHit:0,parts:0,elites:0,deaths:0,combos:0}});refreshStats();
 }
 function enterArea(i,o){
@@ -1233,13 +1243,13 @@ function enterArea(i,o){
     if(S.nushiHere)lines.push({who:'',text:'……背すじが ぞくっとした。この場所の どこかに、ただならぬ 気配が ある。'});
     say(lines);},900);
 }
-function ngIntro(i){const A=AREAS[i],K=TYPES['inv_'+A.id];return [{who:'ダンゴムシ',text:'（'+A.name+'にも、よそ者の においが する……）'},{who:'',text:'門番の ひとりが、よそ者の 頭「'+(K?K.name:'？？？')+'」に 入れかわっている。'},{who:'ダンゴムシ',text:'（番長だけじゃ ない。この林を、よそ者から 取り返すんだ）'},...themeAreaLines()];}
+function ngIntro(i){const A=AREAS[i],st=story()||STORIES.hiari,kid=storyKeeper(A,i),K=kid&&TYPES[kid];return [{who:'ダンゴムシ',text:'（'+A.name+'……'+st.intro+'）'},...(K?[{who:'',text:'門番の ひとりが「'+K.name+'」に 入れかわっている。'}]:[]),{who:'ダンゴムシ',text:'（今年の 夏は「'+st.name+'」だ。もう一度、てっぺんまで 行く！）'},...themeAreaLines()];}
 function newGame(){resetRun();rollSummerTheme();S.tutRun=true;S.order='atk';if(typeof UI!=='undefined')UI.co=null;startOpening(0);}
 function continueGame(){const s=readSave();if(!s){newGame();return;}applySave(s);enterArea(Math.min(s.areaI,AREAS.length-1),{fromSave:true});}
 function nextSummer(){
   const s=readSave();if(s)applySave(s);
   S.cycle++;S.cleared=[];S.unlocked=0;S.time=0;S.diary={};S.firstClear={};
-  rollSummerTheme();
+  rollSummerTheme();rollStory();
   for(const r of S.roster){r.faint=false;r.restT=0;r.hpFrac=1;}
   diary('また 夏が きた。'+(S.cycle+1)+'年目の 夏だ。林に よそ者が 入ってきた。');
   startOpening(S.cycle);
@@ -1265,13 +1275,13 @@ function endAlly(){const r=S.roster[S.allyI];return r||null;}
 const END_SCENES=[
   {id:'fall',music:null,lines:c=>[
     {who:'',text:'……。'},
-    {who:'カブトの若頭',text:c?'……また 負けか。':'……ちっ。'},
-    {who:'カブトの若頭',text:c?'おめえ、去年より 強くなってやがる。番長の座は、今年も おめえの もんだ。':'負けたよ。番長の座は、おめえの もんだ。'}]},
+    {who:finalName(),text:story()&&story().final?(S.story==='hiari'||S.story==='hachi'?'……っ！ この わたしが……。':'……っ！ この おれが……。')
+      :c?'……また 負けか。':'……ちっ。'},
+    {who:finalName(),text:story()&&story().final?story().final.fall:c?'おめえ、去年より 強くなってやがる。番長の座は、今年も おめえの もんだ。':'負けたよ。番長の座は、おめえの もんだ。'}]},
   {id:'throne',music:'victory',lines:c=>[
     {who:'',text:'ダンゴムシは、ゆっくりと 大だまりへ 歩いていった。',act:'walk'},
     {who:'',text:'気づけば、林じゅうの 番長たちが あつまっていた。',act:'gather'},
     ...BOSS_FAREWELL.map(([id,who,text])=>({who,text,focus:id})),
-    ...(c?[{who:'ヒアリの 女帝',text:'……この林の 虫は、こんなに つよいのね。わたしたちは、海の 向こうへ 帰るわ。'}]:[]),
     {who:'番長たち',text:'番長！ 番長！ 番長！',act:'chant'},
     {who:'ダンゴムシ',text:'（いちばん 奥の 樹液は、思っていたより ずっと 甘かった）'}]},
   {id:'matsuri',music:'matsuri',card:'その夜',lines:()=>{const a=endAlly();return [
@@ -1288,6 +1298,7 @@ const END_SCENES=[
     {who:'',text:dateStr()+'。ぼくは 林の 番長に なった。'},
     {who:'',text:'たおした 虫は '+kills+'ひき。いちばん たよりに なったのは「'+hn+'」。'},
     ...(S.finalPrize?[{who:'',text:'若頭の「'+S.finalPrize[0]+'」は、すみかに かざってある。'}]:[]),
+    ...(S.storyPrize?[{who:'',text:'物語の ごほうびに「'+S.storyPrize+'」を もらった。'}]:[]),
     ...(theme()?[{who:'',text:'ぼくの 夏は「'+themeName()+'」だった。'}]:[]),
     {who:'',text:'ひと夏の 番長。それで、十分だ。'}];}},
   {id:'parade',music:'title',lines:()=>[]}
@@ -1329,9 +1340,9 @@ function openScenes(cy){
       {who:'',text:'番長の座には、カブトの若頭が もどっていた。',act:'tilt'}]},
     {id:'op_bar',music:'jueki',lines:()=>[
       {who:'カブトの若頭',text:storm?'よう、番長。この風じゃ、座に しがみつくのも ひと苦労だぜ。':th?'よう、番長。今年の 夏は、ひと味 ちがうぜ。':'よう、去年の 番長。今年は そうは いかねえぞ。',act:'laugh'},
-      {who:'',text:'そのとき——林の 外から、見なれない 赤い 行列が やってきた。',act:'invade'},
-      {who:'ヒアリの 女帝',text:'甘い におい。この林の 樹液は、わたしたちが いただくわ。'},
-      {who:'カブトの若頭',text:'な、なんだと……！？'}]},
+      {who:'',text:(story()||STORIES.hiari).lines[0],act:(story()||STORIES.hiari).march?'invade':'laugh'},
+      {who:(story()||STORIES.hiari).leaderName,text:(story()||STORIES.hiari).lines[1]},
+      {who:'カブトの若頭',text:S.story==='kabuto'?'……覚悟しな、番長。':'な、なんだと……！？'}]},
     {id:'op_ground',music:null,lines:()=>{const a=endAlly();return [
       {who:'',text:'よそ者たちは、林の あちこちに ちらばっていった。',act:'uncurl'},
       a?{who:a.name,text:'兄貴、どうします！？'}:{who:'',text:'林の 虫たちが、ざわざわと さわいでいる。'},
