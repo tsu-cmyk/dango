@@ -250,7 +250,7 @@ const AREAS=[
     bossDown:[],clear:''}
 ];
 function xpNeed(lv){return Math.round(12*Math.pow(lv,1.72));}
-const MAX_LV=60;
+const MAX_LV=100;
 
 /* ---------------- follower skills ----------------
    learned at +3 levels after joining (keepers know it from the start), mastered (真) at +8 */
